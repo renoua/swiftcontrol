@@ -11,7 +11,9 @@ dependencies:
     sdk: flutter
 
   flutter_blue_plus: ^1.35.3
+  protobuf: ^3.1.0
   dartx: any
+  pointycastle: any
 
 dev_dependencies:
   flutter_test:

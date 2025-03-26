@@ -1,9 +1,9 @@
 import 'dart:async';
 
+import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:swift_play/utils/ble_device.dart';
-import 'package:swift_play/widgets/small_progress_indicator.dart';
 
 class DevicePage extends StatefulWidget {
   final BleDevice bleDevice;
@@ -16,17 +16,25 @@ class DevicePage extends StatefulWidget {
 class _DevicePageState extends State<DevicePage> {
   int? _rssi;
   BluetoothConnectionState _connectionState = BluetoothConnectionState.disconnected;
-  List<BluetoothService> _services = [];
-  bool _isDiscoveringServices = false;
+  List<String> _actions = [];
 
   late StreamSubscription<BluetoothConnectionState> _connectionStateSubscription;
 
+  late StreamSubscription<String> _actionSubscription;
   BluetoothDevice get device => widget.bleDevice.scanResult.device;
 
   @override
   void initState() {
     super.initState();
 
+    _actionSubscription = widget.bleDevice.actionStream.listen((data) {
+      if (mounted) {
+        setState(() {
+          _actions.add('${DateTime.now().toString().split(" ").last}: $data');
+          _actions = _actions.takeLast(30).toList();
+        });
+      }
+    });
     _connectionStateSubscription = device.connectionState.listen((state) async {
       _connectionState = state;
       if (state == BluetoothConnectionState.connected) {
@@ -44,6 +52,7 @@ class _DevicePageState extends State<DevicePage> {
   @override
   void dispose() {
     _connectionStateSubscription.cancel();
+    _actionSubscription.cancel();
     super.dispose();
   }
 
@@ -86,55 +95,6 @@ class _DevicePageState extends State<DevicePage> {
     }
   }
 
-  Future onDiscoverServicesPressed() async {
-    if (mounted) {
-      setState(() {
-        _isDiscoveringServices = true;
-      });
-    }
-    try {
-      _services = await device.discoverServices();
-    } catch (e, backtrace) {
-      ScaffoldMessenger.of(
-        _snackBarMessengerKey.currentContext!,
-      ).showSnackBar(SnackBar(content: Text('Error: $e'), duration: const Duration(seconds: 5)));
-      print(e);
-      print("backtrace: $backtrace");
-    }
-    if (mounted) {
-      setState(() {
-        _isDiscoveringServices = false;
-      });
-    }
-  }
-
-  Widget buildRemoteId(BuildContext context) {
-    return Padding(padding: const EdgeInsets.all(8.0), child: Text('${device.remoteId}'));
-  }
-
-  Widget buildRssiTile(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        isConnected ? const Icon(Icons.bluetooth_connected) : const Icon(Icons.bluetooth_disabled),
-        Text(((isConnected && _rssi != null) ? '${_rssi!} dBm' : ''), style: Theme.of(context).textTheme.bodySmall),
-      ],
-    );
-  }
-
-  Widget buildGetServices(BuildContext context) {
-    return SizedBox(
-      width: 100,
-      child: IndexedStack(
-        index: (_isDiscoveringServices) ? 1 : 0,
-        children: <Widget>[
-          TextButton(onPressed: onDiscoverServicesPressed, child: const Text("Get Services")),
-          const IconButton(icon: SmallProgressIndicator(), onPressed: null),
-        ],
-      ),
-    );
-  }
-
   Widget buildConnectButton(BuildContext context) {
     return Row(
       children: [
@@ -159,15 +119,17 @@ class _DevicePageState extends State<DevicePage> {
           actions: [buildConnectButton(context)],
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         ),
-        body: ListView(
-          children: <Widget>[
-            buildRemoteId(context),
-            ListTile(
-              leading: buildRssiTile(context),
-              title: Text('Device is ${_connectionState.toString().split('.')[1]}.'),
-              trailing: buildGetServices(context),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text('Device is ${_connectionState.toString().split('.')[1]}.'),
             ),
-            ListTile(title: Text('Device type: ${widget.bleDevice.type}')),
+            Padding(padding: const EdgeInsets.all(8.0), child: Text('Device type: ${widget.bleDevice.type}')),
+            Expanded(
+              child: ListView(padding: EdgeInsets.all(8), children: _actions.map((action) => Text(action)).toList()),
+            ),
           ],
         ),
       ),

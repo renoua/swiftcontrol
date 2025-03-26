@@ -26,12 +26,12 @@ class Constants {
   static final RESPONSE_START = Uint8List.fromList([1, 3]); // from device
 
   // Message types received from device
-  static const CONTROLLER_NOTIFICATION_MESSAGE_TYPE = 0x07;
-  static const EMPTY_MESSAGE_TYPE = 0x21;
-  static const BATTERY_LEVEL_TYPE = 0x25;
+  static const CONTROLLER_NOTIFICATION_MESSAGE_TYPE = 07;
+  static const EMPTY_MESSAGE_TYPE = 21;
+  static const BATTERY_LEVEL_TYPE = 25;
 
   // not figured out the protobuf type this really is, the content is just two varints.
-  static const CLICK_NOTIFICATION_MESSAGE_TYPE = 0x55;
+  static const int CLICK_NOTIFICATION_MESSAGE_TYPE = 55;
 
   // see this if connected to Core then Zwift connects to it. just one byte
   static const DISCONNECT_MESSAGE_TYPE = 0xFE;
