@@ -15,6 +15,12 @@ dependencies:
   dartx: any
   pointycastle: any
 
+dependency_overrides:
+  flutter_blue_plus_web:
+    git:
+      url: https://github.com/chipweinberger/flutter_blue_plus.git
+      path: packages/flutter_blue_plus_web
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

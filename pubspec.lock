@@ -159,12 +159,13 @@ packages:
     source: hosted
     version: "3.0.0"
   flutter_blue_plus_web:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: flutter_blue_plus_web
-      sha256: db70cdc41bc743763dc0d47e8c7c10f3923cbbe71b33d9dc21deea482affeb4d
-      url: "https://pub.dev"
-    source: hosted
+      path: "packages/flutter_blue_plus_web"
+      ref: HEAD
+      resolved-ref: "5fc128ed6ff6b1bc038ec9f91a6d9789c2cebc53"
+      url: "https://github.com/chipweinberger/flutter_blue_plus.git"
+    source: git
     version: "3.0.0"
   flutter_lints:
     dependency: "direct dev"
@@ -383,4 +384,4 @@ packages:
     version: "6.5.0"
 sdks:
   dart: ">=3.7.0 <4.0.0"
-  flutter: ">=3.19.0"
+  flutter: ">=3.18.0-18.0.pre.54"

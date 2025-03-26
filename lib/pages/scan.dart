@@ -64,6 +64,7 @@ class _ScanWidgetState extends State<ScanWidget> {
       await FlutterBluePlus.startScan(
         timeout: const Duration(seconds: 15),
         withServices: [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID],
+        webOptionalServices: [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID],
       );
     } catch (e, backtrace) {
       ScaffoldMessenger.of(

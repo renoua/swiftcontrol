@@ -48,7 +48,7 @@ class BleDevice {
       },
     );
 
-    if (Platform.isAndroid) {
+    if (!kIsWeb && Platform.isAndroid) {
       await device.requestMtu(256);
     }
 
@@ -87,7 +87,7 @@ class BleDevice {
     device.cancelWhenDisconnected(asyncSubscription);
 
     if (!syncTxCharacteristic.isNotifying) {
-      await syncTxCharacteristic.setNotifyValue(true, forceIndications: Platform.isAndroid);
+      await syncTxCharacteristic.setNotifyValue(true, forceIndications: !kIsWeb && Platform.isAndroid);
     }
     final syncSubscription = syncTxCharacteristic.lastValueStream.listen((onData) {
       _processCharacteristic('sync', Uint8List.fromList(onData));
