@@ -4,11 +4,13 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:swift_control/utils/devices/ble_device.dart';
+import 'package:swift_control/utils/requirements/android.dart';
 
 import 'messages/notification.dart';
 
 class Connection {
   final devices = <BleDevice>[];
+  var androidNotificationsSetup = false;
 
   final Map<BleDevice, StreamSubscription<BaseNotification>> _streamSubscriptions = {};
   final StreamController<BaseNotification> _actionStreams = StreamController<BaseNotification>.broadcast();
@@ -41,6 +43,12 @@ class Connection {
       _connect(device).then((_) {});
     }
     hasDevices.value = devices.isNotEmpty;
+    if (devices.isNotEmpty && !androidNotificationsSetup) {
+      androidNotificationsSetup = true;
+      NotificationRequirement.setup().catchError((e) {
+        _actionStreams.add(LogNotification(e.toString()));
+      });
+    }
   }
 
   Future<void> _connect(BleDevice bleDevice) async {

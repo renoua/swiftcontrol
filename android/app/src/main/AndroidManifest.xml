@@ -11,14 +11,16 @@
     <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"/>
 
 
     <!-- legacy for Android 9 or lower -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" android:maxSdkVersion="28" />
-
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
-        android:label="swift_play"
+        android:label="SwiftControl"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -44,6 +46,10 @@
             </intent-filter>
         </activity>
 
+        <receiver
+                android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
+                android:exported="false" />
+
         <service
                 android:name="de.jonasbark.accessibility.AccessibilityService"
                 android:exported="true"
@@ -56,6 +62,13 @@
                     android:name="android.accessibilityservice"
                     android:resource="@xml/accessibility_service_config" />
         </service>
+
+        <service
+                android:name="com.dexterous.flutterlocalnotifications.ForegroundService"
+                android:exported="false"
+                android:stopWithTask="false"
+                android:foregroundServiceType="connectedDevice"/>
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

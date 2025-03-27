@@ -18,7 +18,9 @@ class AndroidActions extends BaseActions {
 
   @override
   void decreaseGear() {
-    assert(windowInfo != null, "No window info");
+    if (windowInfo == null) {
+      throw Exception("No window info");
+    }
 
     final point = switch (windowInfo!.packageName) {
       MYWHOOSH_APP_PACKAGE => Offset(windowInfo!.windowWidth * 0.80, windowInfo!.windowHeight * 0.94),
@@ -31,7 +33,9 @@ class AndroidActions extends BaseActions {
 
   @override
   void increaseGear() {
-    assert(windowInfo != null, "No window info");
+    if (windowInfo == null) {
+      throw Exception("No window info");
+    }
 
     final point = switch (windowInfo!.packageName) {
       MYWHOOSH_APP_PACKAGE => Offset(windowInfo!.windowWidth * 0.98, windowInfo!.windowHeight * 0.94),

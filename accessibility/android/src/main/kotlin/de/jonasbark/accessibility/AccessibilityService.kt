@@ -25,7 +25,7 @@ class AccessibilityService : AccessibilityService(), Listener {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
-        if (event.packageName == null) {
+        if (event.packageName == null || rootInActiveWindow == null) {
             return
         }
         val currentPackageName = event.packageName.toString()

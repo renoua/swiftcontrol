@@ -12,7 +12,7 @@ class RequirementsPage extends StatefulWidget {
   State<RequirementsPage> createState() => _RequirementsPageState();
 }
 
-class _RequirementsPageState extends State<RequirementsPage> {
+class _RequirementsPageState extends State<RequirementsPage> with WidgetsBindingObserver {
   int _currentStep = 0;
 
   List<PlatformRequirement> _requirements = [];
@@ -20,6 +20,7 @@ class _RequirementsPageState extends State<RequirementsPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     // call after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -35,7 +36,15 @@ class _RequirementsPageState extends State<RequirementsPage> {
 
   @override
   dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _reloadRequirements();
+    }
   }
 
   @override
