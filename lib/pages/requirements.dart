@@ -1,9 +1,7 @@
-import 'dart:async';
-
+import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:swift_play/main.dart';
-import 'package:swift_play/pages/scan.dart';
+import 'package:swift_play/utils/requirements/platform.dart';
 
 import 'device.dart';
 
@@ -15,23 +13,15 @@ class RequirementsPage extends StatefulWidget {
 }
 
 class _RequirementsPageState extends State<RequirementsPage> {
-  late final StreamSubscription<BluetoothAdapterState> _adapterStateStateSubscription;
-  StepState _bluetoothStepState = StepState.indexed;
   int _currentStep = 0;
+
+  List<PlatformRequirement> _requirements = [];
 
   @override
   void initState() {
     super.initState();
 
-    _adapterStateStateSubscription = FlutterBluePlus.adapterState.listen((state) {
-      _bluetoothStepState = state != BluetoothAdapterState.off ? StepState.complete : StepState.indexed;
-      if (_bluetoothStepState == StepState.complete) {
-        _currentStep = 1;
-      }
-      if (mounted) {
-        setState(() {});
-      }
-    });
+    _reloadRequirements();
 
     connection.hasDevices.addListener(() {
       if (connection.hasDevices.value) {
@@ -43,48 +33,59 @@ class _RequirementsPageState extends State<RequirementsPage> {
   @override
   dispose() {
     super.dispose();
-    _adapterStateStateSubscription.cancel();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Swift Play'), backgroundColor: Theme.of(context).colorScheme.inversePrimary),
-      body: Stepper(
-        currentStep: _currentStep,
-        onStepContinue: () {
-          if (_currentStep <= 2) {
-            setState(() {
-              _currentStep += 1;
-            });
-          }
-        },
-        onStepTapped: (step) {
-          setState(() {
-            _currentStep = step;
-          });
-        },
-        steps: [
-          Step(
-            title: Text('Bluetooth turned on'),
-            content: ElevatedButton(
-              onPressed: () {
-                FlutterBluePlus.turnOn();
-              },
-              child: Text('Turn bluetooth on'),
-            ),
-            state: _bluetoothStepState,
-          ),
-          Step(
-            title: Text('Accessibility service activated'),
-            content: ElevatedButton(onPressed: () {}, child: Text('Turn Accessibility service on')),
-          ),
-          Step(
-            title: Text('Scan for devices'),
-            content: _currentStep != 2 ? CircularProgressIndicator() : ScanWidget(),
-          ),
-        ],
-      ),
+      body:
+          _requirements.isEmpty
+              ? Center(child: CircularProgressIndicator())
+              : Stepper(
+                currentStep: _currentStep,
+                onStepContinue:
+                    _currentStep < _requirements.length
+                        ? () {
+                          setState(() {
+                            _currentStep += 1;
+                          });
+                        }
+                        : null,
+                onStepTapped: (step) {
+                  setState(() {
+                    _currentStep = step;
+                  });
+                },
+                steps:
+                    _requirements
+                        .mapIndexed(
+                          (index, req) => Step(
+                            title: Text(req.name),
+                            content:
+                                (index == _currentStep ? req.build(context) : null) ??
+                                ElevatedButton(onPressed: () => _callRequirement(req), child: Text(req.name)),
+                            state: req.status ? StepState.complete : StepState.indexed,
+                          ),
+                        )
+                        .toList(),
+              ),
     );
+  }
+
+  void _callRequirement(PlatformRequirement req) {
+    req.call().then((_) {
+      _reloadRequirements();
+    });
+  }
+
+  void _reloadRequirements() {
+    getRequirements().then((req) {
+      _requirements = req;
+      _currentStep = req.indexWhere((req) => !req.status);
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 }

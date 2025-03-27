@@ -1,8 +1,10 @@
 import 'dart:typed_data';
 
+import 'package:swift_play/utils/messages/notification.dart';
+
 import '../../protocol/zwift.pb.dart';
 
-class ClickNotification {
+class ClickNotification extends BaseNotification {
   static const int BTN_PRESSED = 0;
 
   bool buttonUp = false;

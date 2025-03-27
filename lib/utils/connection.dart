@@ -5,12 +5,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:swift_play/utils/devices/ble_device.dart';
 
+import 'messages/notification.dart';
+
 class Connection {
   final devices = <BleDevice>[];
 
-  final Map<BleDevice, StreamSubscription<String>> _streamSubscriptions = {};
-  final StreamController<String> _actionStreams = StreamController<String>.broadcast();
-  Stream<String> get actionStream => _actionStreams.stream;
+  final Map<BleDevice, StreamSubscription<BaseNotification>> _streamSubscriptions = {};
+  final StreamController<BaseNotification> _actionStreams = StreamController<BaseNotification>.broadcast();
+  Stream<BaseNotification> get actionStream => _actionStreams.stream;
 
   final Map<BleDevice, StreamSubscription<BluetoothConnectionState>> _connectionSubscriptions = {};
   final StreamController<BleDevice> _connectionStreams = StreamController<BleDevice>.broadcast();
@@ -26,7 +28,7 @@ class Connection {
         _addDevices(scanResults);
       },
       onError: (e) {
-        _actionStreams.add(e.toString());
+        _actionStreams.add(LogNotification(e.toString()));
       },
     );
   }
@@ -58,7 +60,7 @@ class Connection {
       if (e is FlutterBluePlusException && e.code == FbpErrorCode.connectionCanceled.index) {
         // ignore connections canceled by the user
       } else {
-        _actionStreams.add(e.toString());
+        _actionStreams.add(LogNotification(e.toString()));
         if (kDebugMode) {
           print(e);
           print("backtrace: $backtrace");

@@ -9,6 +9,7 @@ import 'package:swift_play/utils/devices/zwift_click.dart';
 import 'package:swift_play/utils/devices/zwift_play.dart';
 
 import '../crypto/zap_crypto.dart';
+import '../messages/notification.dart';
 
 abstract class BleDevice {
   final ScanResult scanResult;
@@ -47,8 +48,8 @@ abstract class BleDevice {
   }
 
   BluetoothDevice get device => scanResult.device;
-  final StreamController<String> actionStreamInternal = StreamController<String>.broadcast();
-  Stream<String> get actionStream => actionStreamInternal.stream;
+  final StreamController<BaseNotification> actionStreamInternal = StreamController<BaseNotification>.broadcast();
+  Stream<BaseNotification> get actionStream => actionStreamInternal.stream;
 
   Future<void> connect() async {
     await device.connect(autoConnect: false).timeout(const Duration(seconds: 3));
@@ -71,7 +72,9 @@ abstract class BleDevice {
     }
     final services = await device.discoverServices();
 
-    await handleServices(services);
+    if (device.isConnected) {
+      await handleServices(services);
+    }
   }
 
   Future<void> handleServices(List<BluetoothService> services);

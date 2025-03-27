@@ -1,0 +1,37 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:swift_play/utils/requirements/multi.dart';
+
+abstract class PlatformRequirement {
+  String name;
+  late bool status;
+
+  PlatformRequirement(this.name);
+
+  Future<void> getStatus();
+
+  Future<void> call();
+
+  Widget? build(BuildContext context) {
+    return null;
+  }
+}
+
+Future<List<PlatformRequirement>> getRequirements() async {
+  List<PlatformRequirement> list;
+  if (kIsWeb) {
+    list = [BluetoothTurnedOn(), BluetoothScanning()];
+  } else if (Platform.isMacOS) {
+    list = [BluetoothTurnedOn(), KeyboardRequirement(), BluetoothScanning()];
+  } else if (Platform.isWindows) {
+    list = [BluetoothTurnedOn(), KeyboardRequirement(), BluetoothScanning()];
+  } else if (Platform.isAndroid) {
+    list = [BluetoothTurnedOn(), BluetoothScanning()];
+  } else {
+    list = [UnsupportedPlatform()];
+  }
+  await Future.wait(list.map((e) => e.getStatus()));
+  return list;
+}

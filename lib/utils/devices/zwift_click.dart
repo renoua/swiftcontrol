@@ -4,6 +4,7 @@ import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:swift_play/utils/devices/ble_device.dart';
+import 'package:swift_play/utils/messages/notification.dart';
 
 import '../ble.dart';
 import '../crypto/encryption_utils.dart';
@@ -90,7 +91,7 @@ class ZwiftClick extends BleDevice {
     } catch (e, stackTrace) {
       print("Error processing data: $e");
       print("Stack Trace: $stackTrace");
-      actionStreamInternal.add(e.toString());
+      actionStreamInternal.add(LogNotification(e.toString()));
     }
   }
 
@@ -136,7 +137,7 @@ class ZwiftClick extends BleDevice {
   void processClickNotification(Uint8List message) {
     final ClickNotification clickNotification = ClickNotification(message);
     if (_lastClickNotification == null || _lastClickNotification != clickNotification) {
-      actionStreamInternal.add(clickNotification.toString());
+      actionStreamInternal.add(clickNotification);
     }
     _lastClickNotification = clickNotification;
   }

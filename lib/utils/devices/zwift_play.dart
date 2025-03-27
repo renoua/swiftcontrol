@@ -12,7 +12,7 @@ class ZwiftPlay extends ZwiftClick {
   void processClickNotification(Uint8List message) {
     final ControllerNotification clickNotification = ControllerNotification(message);
     if (_lastControllerNotification == null || _lastControllerNotification != clickNotification) {
-      actionStreamInternal.add(clickNotification.toString());
+      actionStreamInternal.add(clickNotification);
     }
     _lastControllerNotification = clickNotification;
   }

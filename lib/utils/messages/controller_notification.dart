@@ -1,8 +1,10 @@
 import 'dart:typed_data';
 
+import 'package:swift_play/utils/messages/notification.dart';
+
 import '../../protocol/zwift.pb.dart';
 
-class ControllerNotification {
+class ControllerNotification extends BaseNotification {
   static const int BTN_PRESSED = 0;
 
   late bool rightPad, buttonY, buttonZ, buttonA, buttonB, buttonOn, buttonShift;
