@@ -5,22 +5,18 @@ import '../../protocol/zwift.pb.dart';
 class ClickNotification {
   static const int BTN_PRESSED = 0;
 
-  bool buttonUpPressed = false;
-  bool buttonDownPressed = false;
+  bool buttonUp = false;
+  bool buttonDown = false;
 
   ClickNotification(Uint8List message) {
     final status = ClickKeyPadStatus.fromBuffer(message);
-    buttonUpPressed = status.buttonPlus.value == BTN_PRESSED;
-    buttonDownPressed = status.buttonMinus.value == BTN_PRESSED;
+    buttonUp = status.buttonPlus.value == BTN_PRESSED;
+    buttonDown = status.buttonMinus.value == BTN_PRESSED;
   }
 
   @override
   String toString() {
-    var text = "ClickNotification(";
-    text += buttonUpPressed ? 'Plus' : "";
-    text += buttonDownPressed ? 'Minus' : "";
-    text += ")";
-    return text;
+    return 'ClickNotification{buttonUp: $buttonUp, buttonDown: $buttonDown}';
   }
 
   @override
@@ -28,9 +24,9 @@ class ClickNotification {
       identical(this, other) ||
       other is ClickNotification &&
           runtimeType == other.runtimeType &&
-          buttonUpPressed == other.buttonUpPressed &&
-          buttonDownPressed == other.buttonDownPressed;
+          buttonUp == other.buttonUp &&
+          buttonDown == other.buttonDown;
 
   @override
-  int get hashCode => buttonUpPressed.hashCode ^ buttonDownPressed.hashCode;
+  int get hashCode => buttonUp.hashCode ^ buttonDown.hashCode;
 }

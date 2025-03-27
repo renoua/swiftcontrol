@@ -76,7 +76,7 @@ class ZwiftClick extends BleDevice {
     }
 
     if (bytes.startsWith(Uint8List.fromList([...Constants.RIDE_ON, ...Constants.RESPONSE_START]))) {
-      processDevicePublicKeyResponse(bytes);
+      _processDevicePublicKeyResponse(bytes);
     } else if (bytes.startsWith(Constants.RIDE_ON)) {
       print("Empty RideOn response - unencrypted mode");
     } else if (!supportsEncryption || (bytes.length > Int32List.bytesPerElement + EncryptionUtils.MAC_LENGTH)) {
@@ -114,20 +114,24 @@ class ZwiftClick extends BleDevice {
         print("Battery level update: $message");
         break;
       case Constants.CLICK_NOTIFICATION_MESSAGE_TYPE:
-        final ClickNotification clickNotification = ClickNotification(message);
-        if (_lastClickNotification == null || _lastClickNotification != clickNotification) {
-          actionStreamInternal.add(clickNotification.toString());
-        }
-        _lastClickNotification = clickNotification;
+        processClickNotification(message);
         break;
     }
   }
 
-  void processDevicePublicKeyResponse(Uint8List bytes) {
+  void _processDevicePublicKeyResponse(Uint8List bytes) {
     final devicePublicKeyBytes = bytes.sublist(Constants.RIDE_ON.length + Constants.RESPONSE_START.length);
     zapEncryption.initialise(devicePublicKeyBytes);
     if (kDebugMode) {
       print("Device Public Key - ${devicePublicKeyBytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
     }
+  }
+
+  void processClickNotification(Uint8List message) {
+    final ClickNotification clickNotification = ClickNotification(message);
+    if (_lastClickNotification == null || _lastClickNotification != clickNotification) {
+      actionStreamInternal.add(clickNotification.toString());
+    }
+    _lastClickNotification = clickNotification;
   }
 }

@@ -6,6 +6,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:swift_play/utils/ble.dart';
 import 'package:swift_play/utils/crypto/local_key_provider.dart';
 import 'package:swift_play/utils/devices/zwift_click.dart';
+import 'package:swift_play/utils/devices/zwift_play.dart';
 
 import '../crypto/zap_crypto.dart';
 
@@ -26,6 +27,8 @@ abstract class BleDevice {
     final type = DeviceType.fromManufacturerData(data.first);
     return switch (type) {
       DeviceType.click => ZwiftClick(scanResult),
+      DeviceType.playRight => ZwiftPlay(scanResult),
+      DeviceType.playLeft => ZwiftPlay(scanResult),
       _ => null,
     };
   }
