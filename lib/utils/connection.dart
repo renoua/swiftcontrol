@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:swift_play/utils/devices/ble_device.dart';
+import 'package:swift_control/utils/devices/ble_device.dart';
 
 import 'messages/notification.dart';
 

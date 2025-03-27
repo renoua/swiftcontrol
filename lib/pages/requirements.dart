@@ -1,7 +1,7 @@
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
-import 'package:swift_play/main.dart';
-import 'package:swift_play/utils/requirements/platform.dart';
+import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/requirements/platform.dart';
 
 import 'device.dart';
 
@@ -21,7 +21,10 @@ class _RequirementsPageState extends State<RequirementsPage> {
   void initState() {
     super.initState();
 
-    _reloadRequirements();
+    // call after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _reloadRequirements();
+    });
 
     connection.hasDevices.addListener(() {
       if (connection.hasDevices.value) {

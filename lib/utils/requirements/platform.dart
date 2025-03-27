@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:swift_play/utils/requirements/multi.dart';
+import 'package:swift_control/utils/requirements/multi.dart';
 
 abstract class PlatformRequirement {
   String name;

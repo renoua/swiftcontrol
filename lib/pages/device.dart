@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
-import 'package:swift_play/main.dart';
-import 'package:swift_play/utils/devices/ble_device.dart';
+import 'package:swift_control/main.dart';
+import 'package:swift_control/utils/devices/ble_device.dart';
 
 import '../utils/messages/notification.dart';
 

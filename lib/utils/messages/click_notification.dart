@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:swift_play/utils/messages/notification.dart';
+import 'package:swift_control/utils/messages/notification.dart';
 
 import '../../protocol/zwift.pb.dart';
 

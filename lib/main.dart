@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:swift_play/pages/requirements.dart';
-import 'package:swift_play/utils/connection.dart';
+import 'package:swift_control/pages/requirements.dart';
+import 'package:swift_control/utils/connection.dart';
 
 final connection = Connection();
 
@@ -14,7 +14,7 @@ class SwiftPlayApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Zwift Play',
+      title: 'SwiftControl',
       theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple)),
       home: const RequirementsPage(),
     );

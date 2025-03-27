@@ -2,7 +2,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:pointycastle/export.dart';
-import 'package:swift_play/utils/crypto/encryption_utils.dart';
+import 'package:swift_control/utils/crypto/encryption_utils.dart';
 
 class LocalKeyProvider {
   late AsymmetricKeyPair<PublicKey, PrivateKey> pair;

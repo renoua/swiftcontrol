@@ -3,10 +3,10 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:swift_play/utils/ble.dart';
-import 'package:swift_play/utils/crypto/local_key_provider.dart';
-import 'package:swift_play/utils/devices/zwift_click.dart';
-import 'package:swift_play/utils/devices/zwift_play.dart';
+import 'package:swift_control/utils/ble.dart';
+import 'package:swift_control/utils/crypto/local_key_provider.dart';
+import 'package:swift_control/utils/devices/zwift_click.dart';
+import 'package:swift_control/utils/devices/zwift_play.dart';
 
 import '../crypto/zap_crypto.dart';
 import '../messages/notification.dart';

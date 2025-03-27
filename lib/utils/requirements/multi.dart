@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
-import 'package:swift_play/pages/scan.dart';
-import 'package:swift_play/utils/requirements/platform.dart';
+import 'package:swift_control/pages/scan.dart';
+import 'package:swift_control/utils/requirements/platform.dart';
 
 class KeyboardRequirement extends PlatformRequirement {
   KeyboardRequirement() : super('Keyboard access');
