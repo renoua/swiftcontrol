@@ -60,6 +60,7 @@ class _RequirementsPageState extends State<RequirementsPage> {
                     _currentStep = step;
                   });
                 },
+                controlsBuilder: (context, details) => Container(),
                 steps:
                     _requirements
                         .mapIndexed(
