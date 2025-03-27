@@ -1,10 +1,14 @@
 import 'dart:io';
 
+import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:keypress_simulator/keypress_simulator.dart';
 import 'package:swift_control/pages/scan.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
+
+import '../../main.dart';
+import '../keymap/keymap.dart';
 
 class KeyboardRequirement extends PlatformRequirement {
   KeyboardRequirement() : super('Keyboard access');
@@ -17,6 +21,35 @@ class KeyboardRequirement extends PlatformRequirement {
   @override
   Future<void> getStatus() async {
     status = await keyPressSimulator.isAccessAllowed();
+  }
+}
+
+class KeymapRequirement extends PlatformRequirement {
+  KeymapRequirement() : super('Select your Keymap / App');
+
+  @override
+  Future<void> call() async {}
+
+  @override
+  Future<void> getStatus() async {
+    status = actionHandler.keymap != null;
+  }
+
+  @override
+  Widget? build(BuildContext context, VoidCallback onUpdate) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: DropdownMenu<Keymap>(
+        dropdownMenuEntries:
+            Keymap.values.map((key) => DropdownMenuEntry<Keymap>(value: key, label: key.name.capitalize())).toList(),
+        onSelected: (keymap) {
+          actionHandler.init(keymap);
+          onUpdate();
+        },
+        initialSelection: null,
+        hintText: 'Keymap',
+      ),
+    );
   }
 }
 
@@ -58,7 +91,7 @@ class BluetoothScanning extends PlatformRequirement {
   Future<void> getStatus() async {}
 
   @override
-  Widget? build(BuildContext context) {
+  Widget? build(BuildContext context, VoidCallback onUpdate) {
     return ScanWidget();
   }
 }

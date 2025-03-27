@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
@@ -44,9 +45,9 @@ class Connection {
       _connect(device).then((_) {});
     }
     hasDevices.value = devices.isNotEmpty;
-    if (devices.isNotEmpty && !androidNotificationsSetup) {
+    if (devices.isNotEmpty && !androidNotificationsSetup && !kIsWeb && Platform.isAndroid) {
       androidNotificationsSetup = true;
-      actionHandler.init();
+      actionHandler.init(null);
       NotificationRequirement.setup().catchError((e) {
         _actionStreams.add(LogNotification(e.toString()));
       });

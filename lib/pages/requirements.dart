@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:dartx/dartx.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/requirements/platform.dart';
@@ -24,7 +27,14 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
 
     // call after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _reloadRequirements();
+      if (!kIsWeb && Platform.isMacOS) {
+        // add more delay due tu CBManagerStateUnknown
+        Future.delayed(const Duration(seconds: 2), () {
+          _reloadRequirements();
+        });
+      } else {
+        _reloadRequirements();
+      }
     });
 
     connection.hasDevices.addListener(() {
@@ -86,7 +96,11 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
                           (index, req) => Step(
                             title: Text(req.name),
                             content:
-                                (index == _currentStep ? req.build(context) : null) ??
+                                (index == _currentStep
+                                    ? req.build(context, () {
+                                      _reloadRequirements();
+                                    })
+                                    : null) ??
                                 ElevatedButton(
                                   onPressed: req.status ? null : () => _callRequirement(req),
                                   child: Text(req.name),

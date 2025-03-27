@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:accessibility/accessibility.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/actions/base_actions.dart';
+import 'package:swift_control/utils/keymap/keymap.dart';
 
 class AndroidActions extends BaseActions {
   static const MYWHOOSH_APP_PACKAGE = "com.mywhoosh.whooshgame";
@@ -11,7 +12,7 @@ class AndroidActions extends BaseActions {
   WindowEvent? windowInfo;
 
   @override
-  void init() {
+  void init(Keymap? keymap) {
     streamEvents().listen((windowEvent) {
       windowInfo = windowEvent;
     });

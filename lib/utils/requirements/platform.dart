@@ -15,7 +15,7 @@ abstract class PlatformRequirement {
 
   Future<void> call();
 
-  Widget? build(BuildContext context) {
+  Widget? build(BuildContext context, VoidCallback onUpdate) {
     return null;
   }
 }
@@ -25,9 +25,9 @@ Future<List<PlatformRequirement>> getRequirements() async {
   if (kIsWeb) {
     list = [BluetoothTurnedOn(), BluetoothScanning()];
   } else if (Platform.isMacOS) {
-    list = [BluetoothTurnedOn(), KeyboardRequirement(), BluetoothScanning()];
+    list = [BluetoothTurnedOn(), KeyboardRequirement(), KeymapRequirement(), BluetoothScanning()];
   } else if (Platform.isWindows) {
-    list = [BluetoothTurnedOn(), KeyboardRequirement(), BluetoothScanning()];
+    list = [BluetoothTurnedOn(), KeyboardRequirement(), KeymapRequirement(), BluetoothScanning()];
   } else if (Platform.isAndroid) {
     list = [BluetoothTurnedOn(), AccessibilityRequirement(), NotificationRequirement(), BluetoothScanning()];
   } else {
