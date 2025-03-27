@@ -138,6 +138,7 @@ class ZwiftClick extends BleDevice {
   void processClickNotification(Uint8List message) {
     final ClickNotification clickNotification = ClickNotification(message);
     if (_lastClickNotification == null || _lastClickNotification != clickNotification) {
+      _lastClickNotification = clickNotification;
       actionStreamInternal.add(clickNotification);
 
       if (clickNotification.buttonUp) {
@@ -146,6 +147,5 @@ class ZwiftClick extends BleDevice {
         actionHandler.decreaseGear();
       }
     }
-    _lastClickNotification = clickNotification;
   }
 }

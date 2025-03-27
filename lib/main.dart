@@ -1,3 +1,4 @@
+import 'package:accessibility/accessibility.dart';
 import 'package:flutter/material.dart';
 import 'package:swift_control/pages/requirements.dart';
 import 'package:swift_control/utils/connection.dart';
@@ -6,6 +7,7 @@ import 'utils/actions/base_actions.dart';
 
 final connection = Connection();
 final actionHandler = ActionHandler();
+final accessibilityHandler = Accessibility();
 
 void main() {
   runApp(const SwiftPlayApp());

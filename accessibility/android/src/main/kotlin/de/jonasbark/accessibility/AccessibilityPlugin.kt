@@ -7,7 +7,6 @@ import WindowEvent
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
 import android.provider.Settings
 import androidx.core.content.ContextCompat.startActivity
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -15,6 +14,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
+
 
 /** AccessibilityPlugin */
 class AccessibilityPlugin: FlutterPlugin, MethodCallHandler, Accessibility {
@@ -35,7 +35,6 @@ class AccessibilityPlugin: FlutterPlugin, MethodCallHandler, Accessibility {
     Accessibility.setUp(flutterPluginBinding.binaryMessenger, this)
     StreamEventsStreamHandler.register(flutterPluginBinding.binaryMessenger, eventHandler)
     Observable.fromService = eventHandler
-
   }
 
   override fun onMethodCall(call: MethodCall, result: Result) {
@@ -56,7 +55,9 @@ class AccessibilityPlugin: FlutterPlugin, MethodCallHandler, Accessibility {
   }
 
   override fun openPermissions() {
-    startActivity(context, Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS), Bundle.EMPTY)
+    startActivity(context, Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+      flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+    }, Bundle.EMPTY)
   }
 
   override fun performTouch(x: Double, y: Double) {

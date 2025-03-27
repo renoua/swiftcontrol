@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:swift_control/utils/requirements/android.dart';
 import 'package:swift_control/utils/requirements/multi.dart';
 
 abstract class PlatformRequirement {
@@ -28,7 +29,7 @@ Future<List<PlatformRequirement>> getRequirements() async {
   } else if (Platform.isWindows) {
     list = [BluetoothTurnedOn(), KeyboardRequirement(), BluetoothScanning()];
   } else if (Platform.isAndroid) {
-    list = [BluetoothTurnedOn(), BluetoothScanning()];
+    list = [BluetoothTurnedOn(), AccessibilityRequirement(), BluetoothScanning()];
   } else {
     list = [UnsupportedPlatform()];
   }

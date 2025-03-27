@@ -21,6 +21,7 @@ class AccessibilityService : AccessibilityService(), Listener {
 
     override fun onDestroy() {
         super.onDestroy()
+        Observable.toService = null
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
@@ -42,25 +43,6 @@ class AccessibilityService : AccessibilityService(), Listener {
         return outBounds
     }
 
-    private fun performGearIncrease() {
-        val windowSize = getWindowSize()
-
-        when ("currentPackageName") {
-            MYWHOOSH_APP_PACKAGE -> simulateTap(windowSize.right * 0.98, windowSize.bottom * 0.94)
-            TRAININGPEAKS_APP_PACKAGE -> simulateTap(windowSize.centerX() * 1.32, windowSize.bottom * 0.74)
-        }
-    }
-
-    private fun performGearDecrease() {
-        val windowSize = getWindowSize()
-
-        when ("currentPackageName") {
-            MYWHOOSH_APP_PACKAGE -> simulateTap(windowSize.right * 0.80, windowSize.bottom * 0.94)
-            TRAININGPEAKS_APP_PACKAGE -> simulateTap(windowSize.centerX() * 1.15, windowSize.bottom * 0.74)
-        }
-    }
-
-
     private fun simulateTap(x: Double, y: Double) {
         val gestureBuilder = GestureDescription.Builder()
         val path = Path()
@@ -76,12 +58,6 @@ class AccessibilityService : AccessibilityService(), Listener {
     override fun onInterrupt() {
         Log.d("AccessibilityService", "Service Interrupted")
     }
-
-    companion object {
-        private const val MYWHOOSH_APP_PACKAGE = "com.mywhoosh.whooshgame"
-        private const val TRAININGPEAKS_APP_PACKAGE = "com.indieVelo.client"
-    }
-
 
     override fun performTouch(x: Double, y: Double) {
         simulateTap(x, y)
