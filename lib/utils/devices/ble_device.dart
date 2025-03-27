@@ -7,6 +7,7 @@ import 'package:swift_control/utils/ble.dart';
 import 'package:swift_control/utils/crypto/local_key_provider.dart';
 import 'package:swift_control/utils/devices/zwift_click.dart';
 import 'package:swift_control/utils/devices/zwift_play.dart';
+import 'package:swift_control/utils/devices/zwift_ride.dart';
 
 import '../crypto/zap_crypto.dart';
 import '../messages/notification.dart';
@@ -20,6 +21,9 @@ abstract class BleDevice {
   BleDevice(this.scanResult);
 
   static BleDevice? fromScanResult(ScanResult scanResult) {
+    if (scanResult.device.platformName == 'Zwift Ride') {
+      return ZwiftRide(scanResult);
+    }
     final manufacturerData = scanResult.advertisementData.manufacturerData;
     final data = manufacturerData[Constants.ZWIFT_MANUFACTURER_ID];
     if (data == null || data.isEmpty) {

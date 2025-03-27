@@ -4,6 +4,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class BleUuid {
   static final ZWIFT_CUSTOM_SERVICE_UUID = Guid("00000001-19CA-4651-86E5-FA29DCDD09D1");
+  static final ZWIFT_RIDE_CUSTOM_SERVICE_UUID = Guid("0000fc82-0000-1000-8000-00805f9b34fb");
   static final ZWIFT_ASYNC_CHARACTERISTIC_UUID = Guid("00000002-19CA-4651-86E5-FA29DCDD09D1");
   static final ZWIFT_SYNC_RX_CHARACTERISTIC_UUID = Guid("00000003-19CA-4651-86E5-FA29DCDD09D1");
   static final ZWIFT_SYNC_TX_CHARACTERISTIC_UUID = Guid("00000004-19CA-4651-86E5-FA29DCDD09D1");
@@ -34,6 +35,7 @@ class Constants {
   // not figured out the protobuf type this really is, the content is just two varints.
   static const int CLICK_NOTIFICATION_MESSAGE_TYPE = 55;
   static const int PLAY_NOTIFICATION_MESSAGE_TYPE = 7;
+  static const int RIDE_NOTIFICATION_MESSAGE_TYPE = 35;
 
   // see this if connected to Core then Zwift connects to it. just one byte
   static const DISCONNECT_MESSAGE_TYPE = 0xFE;

@@ -47,7 +47,7 @@ class _ScanWidgetState extends State<ScanWidget> {
     try {
       await FlutterBluePlus.startScan(
         timeout: const Duration(seconds: 30),
-        withServices: [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID],
+        withServices: [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID, BleUuid.ZWIFT_RIDE_CUSTOM_SERVICE_UUID],
         webOptionalServices: kIsWeb ? [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID] : [],
       );
     } catch (e, backtrace) {
@@ -72,16 +72,6 @@ class _ScanWidgetState extends State<ScanWidget> {
       print(e);
       print("backtrace: $backtrace");
     }
-  }
-
-  Future onRefresh() {
-    if (_isScanning == false) {
-      FlutterBluePlus.startScan(timeout: const Duration(seconds: 15));
-    }
-    if (mounted) {
-      setState(() {});
-    }
-    return Future.delayed(Duration(milliseconds: 500));
   }
 
   Widget buildScanButton(BuildContext context) {

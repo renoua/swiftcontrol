@@ -15,10 +15,11 @@ class ZwiftClick extends BleDevice {
   ZwiftClick(super.scanResult);
 
   List<int> get startCommand => Constants.RIDE_ON + Constants.RESPONSE_START_CLICK;
+  Guid get customServiceId => BleUuid.ZWIFT_CUSTOM_SERVICE_UUID;
 
   @override
   Future<void> handleServices(List<BluetoothService> services) async {
-    final customService = services.firstOrNullWhere((service) => service.uuid == BleUuid.ZWIFT_CUSTOM_SERVICE_UUID);
+    final customService = services.firstOrNullWhere((service) => service.uuid == customServiceId);
 
     if (customService == null) {
       throw Exception('Custom service not found');
@@ -125,6 +126,7 @@ class ZwiftClick extends BleDevice {
         break;
       case Constants.CLICK_NOTIFICATION_MESSAGE_TYPE:
       case Constants.PLAY_NOTIFICATION_MESSAGE_TYPE:
+      case Constants.RIDE_NOTIFICATION_MESSAGE_TYPE: // untested
         processClickNotification(message);
         break;
     }
