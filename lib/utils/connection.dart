@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/devices/ble_device.dart';
 import 'package:swift_control/utils/requirements/android.dart';
 
@@ -45,6 +46,7 @@ class Connection {
     hasDevices.value = devices.isNotEmpty;
     if (devices.isNotEmpty && !androidNotificationsSetup) {
       androidNotificationsSetup = true;
+      actionHandler.init();
       NotificationRequirement.setup().catchError((e) {
         _actionStreams.add(LogNotification(e.toString()));
       });

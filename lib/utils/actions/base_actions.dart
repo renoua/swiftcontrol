@@ -6,6 +6,7 @@ import 'android.dart';
 import 'desktop.dart';
 
 abstract class BaseActions {
+  void init() {}
   void increaseGear();
   void decreaseGear();
 }
@@ -33,6 +34,10 @@ class ActionHandler {
     } else {
       actions = DesktopActions();
     }
+  }
+
+  void init() {
+    actions.init();
   }
 
   void increaseGear() {

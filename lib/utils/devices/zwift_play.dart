@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:swift_control/utils/devices/zwift_click.dart';
 import 'package:swift_control/utils/messages/controller_notification.dart';
 
+import '../../main.dart';
 import '../ble.dart';
 
 class ZwiftPlay extends ZwiftClick {
@@ -16,8 +17,14 @@ class ZwiftPlay extends ZwiftClick {
   void processClickNotification(Uint8List message) {
     final ControllerNotification clickNotification = ControllerNotification(message);
     if (_lastControllerNotification == null || _lastControllerNotification != clickNotification) {
+      _lastControllerNotification = clickNotification;
       actionStreamInternal.add(clickNotification);
+
+      if (clickNotification.rightPad && clickNotification.analogLR.abs() == 100) {
+        actionHandler.increaseGear();
+      } else if (!clickNotification.rightPad && clickNotification.analogLR.abs() == 100) {
+        actionHandler.decreaseGear();
+      }
     }
-    _lastControllerNotification = clickNotification;
   }
 }
