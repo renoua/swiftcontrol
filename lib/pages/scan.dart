@@ -46,7 +46,7 @@ class _ScanWidgetState extends State<ScanWidget> {
   Future onScanPressed() async {
     try {
       await FlutterBluePlus.startScan(
-        timeout: const Duration(seconds: 15),
+        timeout: const Duration(seconds: 30),
         withServices: [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID],
         webOptionalServices: kIsWeb ? [BleUuid.ZWIFT_CUSTOM_SERVICE_UUID] : [],
       );

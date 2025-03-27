@@ -14,6 +14,8 @@ import '../messages/click_notification.dart';
 class ZwiftClick extends BleDevice {
   ZwiftClick(super.scanResult);
 
+  List<int> get startCommand => Constants.RIDE_ON + Constants.RESPONSE_START_CLICK;
+
   @override
   Future<void> handleServices(List<BluetoothService> services) async {
     final customService = services.firstOrNullWhere((service) => service.uuid == BleUuid.ZWIFT_CUSTOM_SERVICE_UUID);
@@ -68,7 +70,7 @@ class ZwiftClick extends BleDevice {
   }
 
   void _processCharacteristic(String tag, Uint8List bytes) {
-    if (kDebugMode) {
+    if (kDebugMode && false) {
       print('Received $tag: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}');
       print('Received $tag: ${String.fromCharCodes(bytes)}');
     }
@@ -78,16 +80,16 @@ class ZwiftClick extends BleDevice {
     }
 
     try {
-      if (bytes.startsWith(Uint8List.fromList([...Constants.RIDE_ON, ...Constants.RESPONSE_START]))) {
+      if (bytes.startsWith(startCommand)) {
         _processDevicePublicKeyResponse(bytes);
       } else if (bytes.startsWith(Constants.RIDE_ON)) {
-        print("Empty RideOn response - unencrypted mode");
+        //print("Empty RideOn response - unencrypted mode");
       } else if (!supportsEncryption || (bytes.length > Int32List.bytesPerElement + EncryptionUtils.MAC_LENGTH)) {
         _processData(bytes);
       } else if (bytes[0] == Constants.DISCONNECT_MESSAGE_TYPE) {
-        print("Disconnect message");
+        //print("Disconnect message");
       } else {
-        print("Unprocessed - Data Type: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
+        //print("Unprocessed - Data Type: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
       }
     } catch (e, stackTrace) {
       print("Error processing data: $e");
@@ -116,19 +118,20 @@ class ZwiftClick extends BleDevice {
 
     switch (type) {
       case Constants.EMPTY_MESSAGE_TYPE:
-        print("Empty Message"); // expected when nothing happening
+        //print("Empty Message"); // expected when nothing happening
         break;
       case Constants.BATTERY_LEVEL_TYPE:
-        print("Battery level update: $message");
+        //print("Battery level update: $message");
         break;
       case Constants.CLICK_NOTIFICATION_MESSAGE_TYPE:
+      case Constants.PLAY_NOTIFICATION_MESSAGE_TYPE:
         processClickNotification(message);
         break;
     }
   }
 
   void _processDevicePublicKeyResponse(Uint8List bytes) {
-    final devicePublicKeyBytes = bytes.sublist(Constants.RIDE_ON.length + Constants.RESPONSE_START.length);
+    final devicePublicKeyBytes = bytes.sublist(Constants.RIDE_ON.length + Constants.RESPONSE_START_CLICK.length);
     zapEncryption.initialise(devicePublicKeyBytes);
     if (kDebugMode) {
       print("Device Public Key - ${devicePublicKeyBytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");

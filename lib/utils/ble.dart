@@ -19,11 +19,12 @@ class Constants {
   // Zwift Click = BC1
   static const BC1 = 0x09;
 
-  static final RIDE_ON = Uint8List.fromList([82, 105, 100, 101, 79, 110]);
+  static final RIDE_ON = Uint8List.fromList([0x52, 0x69, 0x64, 0x65, 0x4f, 0x6e]);
 
   // these don't actually seem to matter, its just the header has to be 7 bytes RIDEON + 2
   static final REQUEST_START = Uint8List.fromList([0, 9]); //byteArrayOf(1, 2)
-  static final RESPONSE_START = Uint8List.fromList([1, 3]); // from device
+  static final RESPONSE_START_CLICK = Uint8List.fromList([1, 3]); // from device
+  static final RESPONSE_START_PLAY = Uint8List.fromList([1, 4]); // from device
 
   // Message types received from device
   static const CONTROLLER_NOTIFICATION_MESSAGE_TYPE = 07;
@@ -32,6 +33,7 @@ class Constants {
 
   // not figured out the protobuf type this really is, the content is just two varints.
   static const int CLICK_NOTIFICATION_MESSAGE_TYPE = 55;
+  static const int PLAY_NOTIFICATION_MESSAGE_TYPE = 7;
 
   // see this if connected to Core then Zwift connects to it. just one byte
   static const DISCONNECT_MESSAGE_TYPE = 0xFE;

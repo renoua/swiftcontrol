@@ -18,7 +18,7 @@ class ClickNotification extends BaseNotification {
 
   @override
   String toString() {
-    return 'ClickNotification{buttonUp: $buttonUp, buttonDown: $buttonDown}';
+    return 'Click: {buttonUp: $buttonUp, buttonDown: $buttonDown}';
   }
 
   @override

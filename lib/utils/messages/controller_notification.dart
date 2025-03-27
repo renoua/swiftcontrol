@@ -26,7 +26,16 @@ class ControllerNotification extends BaseNotification {
 
   @override
   String toString() {
-    return 'ControllerNotification{rightPad: $rightPad, buttonY: $buttonY, buttonZ: $buttonZ, buttonA: $buttonA, buttonB: $buttonB, buttonOn: $buttonOn, buttonShift: $buttonShift, analogLR: $analogLR, analogUD: $analogUD}';
+    final allTrueParameters = [
+      //if (rightPad) 'rightPad',
+      if (buttonY) 'buttonY',
+      if (buttonZ) 'buttonZ',
+      if (buttonA) 'buttonA',
+      if (buttonB) 'buttonB',
+      if (buttonOn) 'buttonOn',
+      if (buttonShift) 'buttonShift',
+    ];
+    return '${rightPad ? 'Right' : 'Left'}: {$allTrueParameters, analogLR: $analogLR, analogUD: $analogUD}';
   }
 
   @override
