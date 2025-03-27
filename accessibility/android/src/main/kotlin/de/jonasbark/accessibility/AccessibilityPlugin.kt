@@ -79,7 +79,7 @@ class EventListener : StreamEventsStreamHandler(), Receiver {
   }
 
   override fun onChange(packageName: String, windowWidth: Int, windowHeight: Int) {
-    eventSink?.success(WindowEvent(packageName = packageName, windowWidth = windowHeight.toLong(), windowHeight = windowHeight.toLong()))
+    eventSink?.success(WindowEvent(packageName = packageName, windowWidth = windowWidth.toLong(), windowHeight = windowHeight.toLong()))
   }
 
 }

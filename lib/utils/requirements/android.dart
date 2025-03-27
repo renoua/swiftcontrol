@@ -47,9 +47,11 @@ class NotificationRequirement extends PlatformRequirement {
     await flutterLocalNotificationsPlugin.initialize(
       InitializationSettings(android: initializationSettingsAndroid),
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
-      onDidReceiveNotificationResponse: (_) {
-        connection.reset();
-        exit(0);
+      onDidReceiveNotificationResponse: (n) {
+        if (n.actionId != null) {
+          connection.reset();
+          exit(0);
+        }
       },
     );
 
@@ -89,6 +91,8 @@ class NotificationRequirement extends PlatformRequirement {
 
 @pragma('vm:entry-point')
 void notificationTapBackground(NotificationResponse notificationResponse) {
-  connection.reset();
-  exit(0);
+  if (notificationResponse.actionId != null) {
+    connection.reset();
+    exit(0);
+  }
 }

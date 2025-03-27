@@ -30,7 +30,7 @@ class AccessibilityService : AccessibilityService(), Listener {
         }
         val currentPackageName = event.packageName.toString()
         val windowSize = getWindowSize()
-        Observable.fromService?.onChange(packageName = currentPackageName, windowHeight = windowSize.height(), windowWidth = windowSize.width())
+        Observable.fromService?.onChange(packageName = currentPackageName, windowHeight = windowSize.bottom, windowWidth = windowSize.right)
     }
 
     private fun getWindowSize(): Rect {
