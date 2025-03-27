@@ -1,11 +1,11 @@
 {
-    "name": "swift_play",
-    "short_name": "swift_play",
+    "name": "SwiftControl",
+    "short_name": "SwiftControl",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "Swift Play - Control your virtual riding",
+    "description": "SwiftControl - Control your virtual riding",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -57,7 +57,7 @@ class _DevicePageState extends State<DevicePage> {
         },
         child: Scaffold(
           appBar: AppBar(
-            title: Text('Swift Play'),
+            title: Text('SwiftControl'),
             actions: [
               IconButton(
                 onPressed: () {

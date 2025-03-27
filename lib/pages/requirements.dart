@@ -38,7 +38,7 @@ class _RequirementsPageState extends State<RequirementsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Swift Play'), backgroundColor: Theme.of(context).colorScheme.inversePrimary),
+      appBar: AppBar(title: Text('SwiftControl'), backgroundColor: Theme.of(context).colorScheme.inversePrimary),
       body:
           _requirements.isEmpty
               ? Center(child: CircularProgressIndicator())

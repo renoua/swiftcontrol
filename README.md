@@ -1,6 +1,6 @@
-# swift_play
+# SwiftControl
 
-Swift Play - Control your virtual riding
+SwiftControl - Control your virtual riding
 
 ## Getting Started
 
