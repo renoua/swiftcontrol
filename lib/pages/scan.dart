@@ -1,45 +1,28 @@
 import 'dart:async';
 
-import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:swift_play/main.dart';
 import 'package:swift_play/utils/ble.dart';
-import 'package:swift_play/utils/devices/ble_device.dart';
 import 'package:swift_play/widgets/small_progress_indicator.dart';
 
 class ScanWidget extends StatefulWidget {
-  final void Function(BleDevice) onDeviceSelected;
-
-  const ScanWidget({super.key, required this.onDeviceSelected});
+  const ScanWidget({super.key});
 
   @override
   State<ScanWidget> createState() => _ScanWidgetState();
 }
 
 class _ScanWidgetState extends State<ScanWidget> {
-  List<BleDevice> _scanResults = [];
   bool _isScanning = false;
-  late StreamSubscription<List<ScanResult>> _scanResultsSubscription;
   late StreamSubscription<bool> _isScanningSubscription;
 
   @override
   void initState() {
     super.initState();
 
-    _scanResultsSubscription = FlutterBluePlus.scanResults.listen(
-      (results) {
-        _scanResults = results.mapNotNull(BleDevice.fromScanResult).toList();
-        if (mounted) {
-          setState(() {});
-        }
-      },
-      onError: (e) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e'), duration: const Duration(seconds: 5)));
-      },
-    );
+    connection.startScanning();
 
     _isScanningSubscription = FlutterBluePlus.isScanning.listen((state) {
       _isScanning = state;
@@ -56,7 +39,6 @@ class _ScanWidgetState extends State<ScanWidget> {
 
   @override
   void dispose() {
-    _scanResultsSubscription.cancel();
     _isScanningSubscription.cancel();
     super.dispose();
   }
@@ -117,18 +99,7 @@ class _ScanWidgetState extends State<ScanWidget> {
       child: ListView(
         padding: EdgeInsets.all(16),
         shrinkWrap: true,
-        children: [
-          if (_isScanning) SmallProgressIndicator() else buildScanButton(context),
-          ..._scanResults.map(
-            (r) => ListTile(
-              title: Text(r.scanResult.device.platformName),
-              subtitle: Text(r.toString()),
-              onTap: () {
-                widget.onDeviceSelected(r);
-              },
-            ),
-          ),
-        ],
+        children: [if (_isScanning) SmallProgressIndicator() else buildScanButton(context)],
       ),
     );
   }

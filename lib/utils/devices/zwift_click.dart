@@ -75,16 +75,22 @@ class ZwiftClick extends BleDevice {
       return;
     }
 
-    if (bytes.startsWith(Uint8List.fromList([...Constants.RIDE_ON, ...Constants.RESPONSE_START]))) {
-      _processDevicePublicKeyResponse(bytes);
-    } else if (bytes.startsWith(Constants.RIDE_ON)) {
-      print("Empty RideOn response - unencrypted mode");
-    } else if (!supportsEncryption || (bytes.length > Int32List.bytesPerElement + EncryptionUtils.MAC_LENGTH)) {
-      _processData(bytes);
-    } else if (bytes[0] == Constants.DISCONNECT_MESSAGE_TYPE) {
-      print("Disconnect message");
-    } else {
-      print("Unprocessed - Data Type: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
+    try {
+      if (bytes.startsWith(Uint8List.fromList([...Constants.RIDE_ON, ...Constants.RESPONSE_START]))) {
+        _processDevicePublicKeyResponse(bytes);
+      } else if (bytes.startsWith(Constants.RIDE_ON)) {
+        print("Empty RideOn response - unencrypted mode");
+      } else if (!supportsEncryption || (bytes.length > Int32List.bytesPerElement + EncryptionUtils.MAC_LENGTH)) {
+        _processData(bytes);
+      } else if (bytes[0] == Constants.DISCONNECT_MESSAGE_TYPE) {
+        print("Disconnect message");
+      } else {
+        print("Unprocessed - Data Type: ${bytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
+      }
+    } catch (e, stackTrace) {
+      print("Error processing data: $e");
+      print("Stack Trace: $stackTrace");
+      actionStreamInternal.add(e.toString());
     }
   }
 

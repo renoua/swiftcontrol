@@ -34,6 +34,14 @@ abstract class BleDevice {
   }
 
   @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BleDevice && runtimeType == other.runtimeType && scanResult == other.scanResult;
+
+  @override
+  int get hashCode => scanResult.hashCode;
+
+  @override
   String toString() {
     return runtimeType.toString();
   }

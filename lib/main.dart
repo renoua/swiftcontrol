@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:swift_play/pages/requirements.dart';
+import 'package:swift_play/utils/connection.dart';
+
+final connection = Connection();
 
 void main() {
   runApp(const SwiftPlayApp());

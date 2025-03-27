@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:swift_play/pages/device.dart';
+import 'package:swift_play/main.dart';
 import 'package:swift_play/pages/scan.dart';
+
+import 'device.dart';
 
 class RequirementsPage extends StatefulWidget {
   const RequirementsPage({super.key});
@@ -28,6 +30,12 @@ class _RequirementsPageState extends State<RequirementsPage> {
       }
       if (mounted) {
         setState(() {});
+      }
+    });
+
+    connection.hasDevices.addListener(() {
+      if (connection.hasDevices.value) {
+        Navigator.push(context, MaterialPageRoute(builder: (c) => DevicePage()));
       }
     });
   }
@@ -73,14 +81,7 @@ class _RequirementsPageState extends State<RequirementsPage> {
           ),
           Step(
             title: Text('Scan for devices'),
-            content:
-                _currentStep != 2
-                    ? CircularProgressIndicator()
-                    : ScanWidget(
-                      onDeviceSelected: (device) {
-                        Navigator.push(context, MaterialPageRoute(builder: (c) => DevicePage(bleDevice: device)));
-                      },
-                    ),
+            content: _currentStep != 2 ? CircularProgressIndicator() : ScanWidget(),
           ),
         ],
       ),
