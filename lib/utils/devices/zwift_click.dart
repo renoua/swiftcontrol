@@ -1,63 +1,19 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:swift_play/utils/ble.dart';
-import 'package:swift_play/utils/crypto/local_key_provider.dart';
+import 'package:swift_play/utils/devices/ble_device.dart';
 
-import 'crypto/encryption_utils.dart';
-import 'crypto/zap_crypto.dart';
-import 'messages/click_notification.dart';
+import '../ble.dart';
+import '../crypto/encryption_utils.dart';
+import '../messages/click_notification.dart';
 
-class BleDevice {
-  final ScanResult scanResult;
-  final zapEncryption = ZapCrypto(LocalKeyProvider());
+class ZwiftClick extends BleDevice {
+  ZwiftClick(super.scanResult);
 
-  bool supportsEncryption = true;
-
-  BleDevice(this.scanResult);
-
-  DeviceType? get type {
-    final manufacturerData = scanResult.advertisementData.manufacturerData;
-    final data = manufacturerData[Constants.ZWIFT_MANUFACTURER_ID];
-    if (data == null || data.isEmpty) {
-      return null;
-    }
-    return DeviceType.fromManufacturerData(data.first);
-  }
-
-  BluetoothDevice get device => scanResult.device;
-  final StreamController<String> _actionStream = StreamController<String>.broadcast();
-  Stream<String> get actionStream => _actionStream.stream;
-
-  Future<void> connect() async {
-    await device.connect(autoConnect: false).timeout(const Duration(seconds: 3));
-
-    var filteredStateStream = device.connectionState.where((s) => s == BluetoothConnectionState.connected);
-
-    // Start listening now, before invokeMethod, to ensure we don't miss the response
-    Future<BluetoothConnectionState> futureState = filteredStateStream.first;
-
-    // wait for connection
-    await futureState.timeout(
-      const Duration(seconds: 10),
-      onTimeout: () {
-        throw TimeoutException('Failed to connect in time.');
-      },
-    );
-
-    if (!kIsWeb && Platform.isAndroid) {
-      await device.requestMtu(256);
-    }
-
-    await _handleServices();
-  }
-
-  Future<void> _handleServices() async {
-    final services = await device.discoverServices();
-
+  @override
+  Future<void> handleServices(List<BluetoothService> services) async {
     final customService = services.firstOrNullWhere((service) => service.uuid == BleUuid.ZWIFT_CUSTOM_SERVICE_UUID);
 
     if (customService == null) {
@@ -124,7 +80,7 @@ class BleDevice {
     } else if (bytes.startsWith(Constants.RIDE_ON)) {
       print("Empty RideOn response - unencrypted mode");
     } else if (!supportsEncryption || (bytes.length > Int32List.bytesPerElement + EncryptionUtils.MAC_LENGTH)) {
-      processData(bytes);
+      _processData(bytes);
     } else if (bytes[0] == Constants.DISCONNECT_MESSAGE_TYPE) {
       print("Disconnect message");
     } else {
@@ -132,7 +88,9 @@ class BleDevice {
     }
   }
 
-  void processData(Uint8List bytes) {
+  ClickNotification? _lastClickNotification;
+
+  void _processData(Uint8List bytes) {
     int type;
     Uint8List message;
 
@@ -157,10 +115,10 @@ class BleDevice {
         break;
       case Constants.CLICK_NOTIFICATION_MESSAGE_TYPE:
         final ClickNotification clickNotification = ClickNotification(message);
-        if (clickNotification.buttonDownPressed || clickNotification.buttonUpPressed) {
-          print("Click Notification: $clickNotification");
-          _actionStream.add(clickNotification.toString());
+        if (_lastClickNotification == null || _lastClickNotification != clickNotification) {
+          actionStreamInternal.add(clickNotification.toString());
         }
+        _lastClickNotification = clickNotification;
         break;
     }
   }
@@ -168,7 +126,7 @@ class BleDevice {
   void processDevicePublicKeyResponse(Uint8List bytes) {
     final devicePublicKeyBytes = bytes.sublist(Constants.RIDE_ON.length + Constants.RESPONSE_START.length);
     zapEncryption.initialise(devicePublicKeyBytes);
-    if (true) {
+    if (kDebugMode) {
       print("Device Public Key - ${devicePublicKeyBytes.map((e) => e.toRadixString(16).padLeft(2, '0')).join(' ')}");
     }
   }

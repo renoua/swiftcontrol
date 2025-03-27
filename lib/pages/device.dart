@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:dartx/dartx.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:swift_play/utils/ble_device.dart';
+import 'package:swift_play/utils/devices/ble_device.dart';
 
 class DevicePage extends StatefulWidget {
   final BleDevice bleDevice;
@@ -116,7 +116,16 @@ class _DevicePageState extends State<DevicePage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(device.platformName),
-          actions: [buildConnectButton(context)],
+          actions: [
+            buildConnectButton(context),
+            IconButton(
+              onPressed: () {
+                _actions.clear();
+                setState(() {});
+              },
+              icon: Icon(Icons.clear),
+            ),
+          ],
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         ),
         body: Column(
@@ -126,7 +135,7 @@ class _DevicePageState extends State<DevicePage> {
               padding: const EdgeInsets.all(8.0),
               child: Text('Device is ${_connectionState.toString().split('.')[1]}.'),
             ),
-            Padding(padding: const EdgeInsets.all(8.0), child: Text('Device type: ${widget.bleDevice.type}')),
+            Padding(padding: const EdgeInsets.all(8.0), child: Text('Device type: ${widget.bleDevice.toString()}')),
             Expanded(
               child: ListView(padding: EdgeInsets.all(8), children: _actions.map((action) => Text(action)).toList()),
             ),

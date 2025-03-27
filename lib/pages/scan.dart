@@ -1,10 +1,11 @@
 import 'dart:async';
 
+import 'package:dartx/dartx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:swift_play/utils/ble.dart';
-import 'package:swift_play/utils/ble_device.dart';
+import 'package:swift_play/utils/devices/ble_device.dart';
 import 'package:swift_play/widgets/small_progress_indicator.dart';
 
 class ScanWidget extends StatefulWidget {
@@ -28,7 +29,7 @@ class _ScanWidgetState extends State<ScanWidget> {
 
     _scanResultsSubscription = FlutterBluePlus.scanResults.listen(
       (results) {
-        _scanResults = results.map(BleDevice.new).toList();
+        _scanResults = results.mapNotNull(BleDevice.fromScanResult).toList();
         if (mounted) {
           setState(() {});
         }
@@ -121,7 +122,7 @@ class _ScanWidgetState extends State<ScanWidget> {
           ..._scanResults.map(
             (r) => ListTile(
               title: Text(r.scanResult.device.platformName),
-              subtitle: Text(r.type?.toString() ?? 'Unknown'),
+              subtitle: Text(r.toString()),
               onTap: () {
                 widget.onDeviceSelected(r);
               },
