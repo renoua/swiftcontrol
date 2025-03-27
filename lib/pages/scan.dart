@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_blue_plus_windows/flutter_blue_plus_windows.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/ble.dart';
 import 'package:swift_control/widgets/small_progress_indicator.dart';
