@@ -16,6 +16,7 @@ dependencies:
   dartx: any
   pointycastle: any
   keypress_simulator: ^0.2.0
+  flex_color_scheme: ^8.2.0
   flutter_blue_plus_windows:
     path: flutter_blue_plus_windows
   accessibility:

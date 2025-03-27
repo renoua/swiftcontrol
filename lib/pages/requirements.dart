@@ -56,6 +56,9 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
               ? Center(child: CircularProgressIndicator())
               : Stepper(
                 currentStep: _currentStep,
+                connectorColor: WidgetStateProperty.resolveWith<Color>(
+                  (Set<WidgetState> states) => Theme.of(context).colorScheme.primary,
+                ),
                 onStepContinue:
                     _currentStep < _requirements.length
                         ? () {
@@ -65,6 +68,13 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
                         }
                         : null,
                 onStepTapped: (step) {
+                  if (_requirements[step].status) {
+                    return;
+                  }
+                  final hasEarlierIncomplete = _requirements.indexWhere((req) => !req.status) < step;
+                  if (hasEarlierIncomplete) {
+                    return;
+                  }
                   setState(() {
                     _currentStep = step;
                   });
@@ -77,7 +87,10 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
                             title: Text(req.name),
                             content:
                                 (index == _currentStep ? req.build(context) : null) ??
-                                ElevatedButton(onPressed: () => _callRequirement(req), child: Text(req.name)),
+                                ElevatedButton(
+                                  onPressed: req.status ? null : () => _callRequirement(req),
+                                  child: Text(req.name),
+                                ),
                             state: req.status ? StepState.complete : StepState.indexed,
                           ),
                         )

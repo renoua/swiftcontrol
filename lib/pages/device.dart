@@ -79,6 +79,7 @@ class _DevicePageState extends State<DevicePage> {
                     return "${it.device.platformName}: ${it.device.isConnected ? 'Connected' : 'Not connected'}";
                   })}',
                 ),
+                Divider(color: Theme.of(context).colorScheme.primary, height: 30),
                 Expanded(
                   child: ListView(
                     children:
