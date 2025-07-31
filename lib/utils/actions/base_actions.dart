@@ -10,11 +10,15 @@ abstract class BaseActions {
   }
 
   Future<String> performAction(ZwiftButton action);
+  Future<String> releaseAction(ZwiftButton action);
 }
 
 class StubActions extends BaseActions {
   @override
   Future<String> performAction(ZwiftButton action) {
+    return Future.value(action.name);
+  }
+  Future<String> releaseAction(ZwiftButton action) {
     return Future.value(action.name);
   }
 }
