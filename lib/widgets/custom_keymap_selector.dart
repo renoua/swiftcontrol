@@ -64,16 +64,24 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
   }
 
   void _onKey(KeyEvent event) {
-    setState(() {
-      if (event is KeyDownEvent) {
+    if (event is KeyDownEvent) {
+      setState(() {
         _pressedKey = event;
         widget.customApp.setKey(
           _pressedButton!,
           physicalKey: _pressedKey!.physicalKey,
           logicalKey: _pressedKey!.logicalKey,
         );
-      }
-    });
+      });
+  
+      // Appel de simulateKeyDown
+      DesktopActions().performAction(_pressedButton!);
+    }
+  
+    if (event is KeyUpEvent) {
+      // Appel de simulateKeyUp
+      DesktopActions().releaseAction(_pressedButton!);
+    }
   }
 
   String _formatKey(KeyDownEvent? key) {
