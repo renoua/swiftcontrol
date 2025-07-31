@@ -21,6 +21,8 @@ abstract class BaseDevice {
   final BleDevice scanResult;
   BaseDevice(this.scanResult);
 
+  final Set<ZwiftButton> _currentlyPressed = {};
+
   final zapEncryption = ZapCrypto(LocalKeyProvider());
 
   bool isConnected = false;
@@ -272,9 +274,36 @@ abstract class BaseDevice {
         buttonsClicked.any(((e) => e.action == InGameAction.shiftDown || e.action == InGameAction.shiftUp))) {
       await _vibrate();
     }
-    for (final action in buttonsClicked) {
-      actionStreamInternal.add(LogNotification(await actionHandler.performAction(action)));
+  
+    // Appuis en cours : tous ceux qui sont actuellement envoyés
+    final newlyPressed = buttonsClicked.toSet();
+    final released = _currentlyPressed.difference(newlyPressed);
+    final pressed = newlyPressed.difference(_currentlyPressed);
+  
+    // 1. Relâche les boutons qui ne sont plus pressés
+    for (final button in released) {
+      final result = await actionHandler.releaseAction(button);
+      actionStreamInternal.add(LogNotification(result));
     }
+  
+    // 2. Appuie sur les nouveaux
+    for (final button in pressed) {
+      final result = await actionHandler.performAction(button);
+      actionStreamInternal.add(LogNotification(result));
+    }
+  
+    // 3. Répète l’action si besoin (tu peux adapter ce comportement)
+    if (repeated) {
+      for (final button in buttonsClicked) {
+        final result = await actionHandler.performAction(button);
+        actionStreamInternal.add(LogNotification('[repeat] $result'));
+      }
+    }
+  
+    // 4. Mets à jour l’état courant
+    _currentlyPressed
+      ..clear()
+      ..addAll(newlyPressed);
   }
 
   Future<void> _vibrate() async {
