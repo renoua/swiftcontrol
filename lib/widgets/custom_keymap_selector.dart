@@ -92,35 +92,41 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
     });
   }
 
-  String _formatKey(KeyDownEvent? key) {
-    return key?.logicalKey.keyLabel ?? 'Waiting...';
+String _formatKey(KeyEvent? key) {
+  if (key is KeyDownEvent) {
+    return key.logicalKey.keyLabel;
   }
+  return 'Waiting...';
+}
 
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      content: _pressedButton == null
-          ? Text('Press a button on your Zwift device')
-          : KeyboardListener(
-              focusNode: _focusNode,
-              autofocus: true,
-              onKeyEvent: _onKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text("Press a key on your keyboard to assign to ${_pressedButton.toString()}"),
-                  Text(_formatKey(_pressedKey)),
-                ],
-              ),
+@override
+Widget build(BuildContext context) {
+  return AlertDialog(
+    content: _pressedButton == null
+        ? Text('Press a button on your Zwift device')
+        : KeyboardListener(
+            focusNode: _focusNode,
+            autofocus: true,
+            onKeyEvent: _onKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("Press a key on your keyboard to assign to ${_pressedButton.toString()}"),
+                Text(_formatKey(_pressedKey)),
+              ],
             ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(_pressedKey),
-          child: Text("OK"),
-        )
-      ],
-    );
-  }
+          ),
+    actions: [
+      TextButton(
+        onPressed: () {
+          if (_pressedKey is KeyDownEvent) {
+            Navigator.of(context).pop(_pressedKey);
+          }
+        },
+        child: Text("OK"),
+      )
+    ],
+  );
 }
