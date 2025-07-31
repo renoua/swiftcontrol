@@ -94,7 +94,7 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPress(
     inputs[eventCount].type = INPUT_KEYBOARD;
     inputs[eventCount].ki.wVk = 0;
     inputs[eventCount].ki.wScan =
-        MapVirtualKey(vk, MAPVK_VK_TO_VSC);
+        static_cast<WORD>(MapVirtualKey(vk, MAPVK_VK_TO_VSC));
     inputs[eventCount].ki.dwFlags =
         KEYEVENTF_SCANCODE | (down ? 0 : KEYEVENTF_KEYUP);
     eventCount++;
