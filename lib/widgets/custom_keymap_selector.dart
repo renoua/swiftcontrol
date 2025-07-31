@@ -80,6 +80,12 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
         desktopActions.performAction(_pressedButton!);
       }
       if (event is KeyUpEvent) {
+        _pressedKey = event;
+        widget.customApp.setKey(
+          _pressedButton!,
+          physicalKey: _pressedKey!.physicalKey,
+          logicalKey: _pressedKey!.logicalKey,
+        );
         // Relâchement virtuel
         desktopActions.releaseAction(_pressedButton!);
       }
