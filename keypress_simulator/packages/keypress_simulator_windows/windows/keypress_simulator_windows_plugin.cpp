@@ -1,3 +1,5 @@
+// keypress_simulator_windows_plugin.cpp
+
 #include "keypress_simulator_windows_plugin.h"
 
 // This must be included before many other Windows headers.
@@ -11,6 +13,7 @@
 
 #include <memory>
 #include <sstream>
+#include <vector>
 
 using flutter::EncodableList;
 using flutter::EncodableMap;
@@ -18,208 +21,187 @@ using flutter::EncodableValue;
 
 namespace keypress_simulator_windows {
 
-// Forward declarations
+// Forward declarations for window‐finding helpers.
 struct FindWindowData {
   std::string targetProcessName;
   std::string targetWindowTitle;
   HWND foundWindow;
 };
-
 BOOL CALLBACK EnumWindowsCallback(HWND hwnd, LPARAM lParam);
-HWND FindTargetWindow(const std::string& processName, const std::string& windowTitle);
+HWND FindTargetWindow(const std::string& processName,
+                      const std::string& windowTitle);
 
 // static
 void KeypressSimulatorWindowsPlugin::RegisterWithRegistrar(
     flutter::PluginRegistrarWindows* registrar) {
   auto channel =
       std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
-          registrar->messenger(), "dev.leanflutter.plugins/keypress_simulator",
+          registrar->messenger(),
+          "dev.leanflutter.plugins/keypress_simulator",
           &flutter::StandardMethodCodec::GetInstance());
 
   auto plugin = std::make_unique<KeypressSimulatorWindowsPlugin>();
-
   channel->SetMethodCallHandler(
       [plugin_pointer = plugin.get()](const auto& call, auto result) {
         plugin_pointer->HandleMethodCall(call, std::move(result));
       });
-
   registrar->AddPlugin(std::move(plugin));
 }
 
 KeypressSimulatorWindowsPlugin::KeypressSimulatorWindowsPlugin() {}
-
 KeypressSimulatorWindowsPlugin::~KeypressSimulatorWindowsPlugin() {}
 
 void KeypressSimulatorWindowsPlugin::SimulateKeyPress(
     const flutter::MethodCall<flutter::EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  const EncodableMap& args = std::get<EncodableMap>(*method_call.arguments());
+  const EncodableMap& args =
+      std::get<EncodableMap>(*method_call.arguments());
 
+  // 1) Read parameters from Dart.
   UINT keyCode = std::get<int>(args.at(EncodableValue("keyCode")));
-  std::vector<std::string> modifiers;
-  bool keyDown = std::get<bool>(args.at(EncodableValue("keyDown")));
+  bool keyDown =
+      std::get<bool>(args.at(EncodableValue("keyDown")));
 
-  EncodableList key_modifier_list =
+  // Collect modifiers list.
+  EncodableList encMods =
       std::get<EncodableList>(args.at(EncodableValue("modifiers")));
-  for (flutter::EncodableValue key_modifier_value : key_modifier_list) {
-    std::string key_modifier = std::get<std::string>(key_modifier_value);
-    modifiers.push_back(key_modifier);
+  std::vector<std::string> modifiers;
+  for (const auto& v : encMods) {
+    modifiers.push_back(std::get<std::string>(v));
   }
 
-  // List of compatible training apps to look for
+  // 2) If needed, find and focus a known target window.
   std::vector<std::string> compatibleApps = {
-    "MyWhooshHD.exe",
-    "indieVelo.exe", 
-    "biketerra.exe"
-  };
-
-  // Try to find and focus a compatible app
+      "MyWhooshHD.exe", "indieVelo.exe", "biketerra.exe"};
   HWND targetWindow = NULL;
-  for (const std::string& processName : compatibleApps) {
-    targetWindow = FindTargetWindow(processName, "");
-    if (targetWindow != NULL) {
-      // Only focus the window if it's not already in the foreground
+  for (auto& proc : compatibleApps) {
+    targetWindow = FindTargetWindow(proc, "");
+    if (targetWindow) {
       if (GetForegroundWindow() != targetWindow) {
         SetForegroundWindow(targetWindow);
-        Sleep(50); // Brief delay to ensure window is focused
+        Sleep(50);
       }
       break;
     }
   }
 
-  INPUT input[6];
+  // 3) Build INPUT array using SCANCODE injection.
+  INPUT inputs[6] = {};  // Max 4 modifiers + 1 key = 5, buffer to 6.
+  int eventCount = 0;
 
-  for (int32_t i = 0; i < modifiers.size(); i++) {
-    if (modifiers[i].compare("shiftModifier") == 0) {
-      input[i].ki.wVk = VK_SHIFT;
-    } else if (modifiers[i].compare("controlModifier") == 0) {
-      input[i].ki.wVk = VK_CONTROL;
-    } else if (modifiers[i].compare("altModifier") == 0) {
-      input[i].ki.wVk = VK_MENU;
-    } else if (modifiers[i].compare("metaModifier") == 0) {
-      input[i].ki.wVk = VK_LWIN;
+  // Helper: map VK_* to scancode, zero wVk
+  auto fillEvent = [&](WORD vk, bool down) {
+    inputs[eventCount].type = INPUT_KEYBOARD;
+    inputs[eventCount].ki.wVk = 0;
+    inputs[eventCount].ki.wScan =
+        MapVirtualKey(vk, MAPVK_VK_TO_VSC);
+    inputs[eventCount].ki.dwFlags =
+        KEYEVENTF_SCANCODE | (down ? 0 : KEYEVENTF_KEYUP);
+    eventCount++;
+  };
+
+  // 3a) Modifiers first.
+  for (auto& m : modifiers) {
+    if (m == "shiftModifier") {
+      fillEvent(VK_SHIFT, keyDown);
+    } else if (m == "controlModifier") {
+      fillEvent(VK_CONTROL, keyDown);
+    } else if (m == "altModifier") {
+      fillEvent(VK_MENU, keyDown);
+    } else if (m == "metaModifier") {
+      fillEvent(VK_LWIN, keyDown);
     }
-
-    input[i].ki.dwFlags = keyDown ? 0 : KEYEVENTF_KEYUP;
-    input[i].type = INPUT_KEYBOARD;
   }
 
-  /*int keyIndex = static_cast<int>(modifiers.size());
-  input[keyIndex].ki.wVk = static_cast<WORD>(keyCode);
-  input[keyIndex].ki.dwFlags = keyDown ? 0 : KEYEVENTF_KEYUP;
-  input[keyIndex].type = INPUT_KEYBOARD;*/
+  // 3b) Then the main key.
+  fillEvent(static_cast<WORD>(keyCode), keyDown);
 
-  // Send key sequence to system
-  //SendInput(static_cast<UINT>(std::size(input)), input, sizeof(INPUT));
+  // 4) Send only the filled events.
+  SendInput(static_cast<UINT>(eventCount), inputs, sizeof(INPUT));
 
-  BYTE byteValue = static_cast<BYTE>(keyCode);
-  keybd_event(byteValue, 0x45, keyDown ? 0 : KEYEVENTF_KEYUP, 0);
-
-  result->Success(flutter::EncodableValue(true));
+  result->Success(EncodableValue(true));
 }
 
 void KeypressSimulatorWindowsPlugin::SimulateMouseClick(
     const flutter::MethodCall<flutter::EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-
-  const EncodableMap& args = std::get<EncodableMap>(*method_call.arguments());
-  double x = 0;
-  double y = 0;
-
-  auto it_x = args.find(EncodableValue("x"));
-  if (it_x != args.end() && std::holds_alternative<double>(it_x->second)) {
-      x = std::get<double>(it_x->second);
+  const EncodableMap& args =
+      std::get<EncodableMap>(*method_call.arguments());
+  double x = 0, y = 0;
+  if (auto it = args.find(EncodableValue("x"));
+      it != args.end() && std::holds_alternative<double>(it->second)) {
+    x = std::get<double>(it->second);
+  }
+  if (auto it = args.find(EncodableValue("y"));
+      it != args.end() && std::holds_alternative<double>(it->second)) {
+    y = std::get<double>(it->second);
   }
 
-  auto it_y = args.find(EncodableValue("y"));
-  if (it_y != args.end() && std::holds_alternative<double>(it_y->second)) {
-      y = std::get<double>(it_y->second);
-  }
-
-  // Move the mouse to the specified coordinates
   SetCursorPos(static_cast<int>(x), static_cast<int>(y));
-
-  // Prepare input for mouse down and up
-  INPUT input = {0};
+  INPUT input = {};
   input.type = INPUT_MOUSE;
 
-  // Mouse left button down
   input.mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
   SendInput(1, &input, sizeof(INPUT));
-
-  // Mouse left button up
   input.mi.dwFlags = MOUSEEVENTF_LEFTUP;
   SendInput(1, &input, sizeof(INPUT));
 
-  result->Success(flutter::EncodableValue(true));
+  result->Success(EncodableValue(true));
 }
 
 BOOL CALLBACK EnumWindowsCallback(HWND hwnd, LPARAM lParam) {
-  FindWindowData* data = reinterpret_cast<FindWindowData*>(lParam);
-  
-  // Check if window is visible and not minimized
-  if (!IsWindowVisible(hwnd) || IsIconic(hwnd)) {
-    return TRUE; // Continue enumeration
-  }
-  
-  // Get window title
+  auto* data = reinterpret_cast<FindWindowData*>(lParam);
+
+  if (!IsWindowVisible(hwnd) || IsIconic(hwnd)) return TRUE;
+
   char windowTitle[256];
   GetWindowTextA(hwnd, windowTitle, sizeof(windowTitle));
-  
-  // Get process name
-  DWORD processId;
-  GetWindowThreadProcessId(hwnd, &processId);
-  HANDLE hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, processId);
-  char processName[MAX_PATH];
-  if (hProcess) {
-    DWORD size = sizeof(processName);
-    if (QueryFullProcessImageNameA(hProcess, 0, processName, &size)) {
-      // Extract just the filename from the full path
-      char* filename = strrchr(processName, '\\');
-      if (filename) {
-        filename++; // Skip the backslash
-      } else {
-        filename = processName;
-      }
-      
-      // Check if this matches our target
-      if (!data->targetProcessName.empty() && 
-          _stricmp(filename, data->targetProcessName.c_str()) == 0) {
+
+  DWORD pid = 0;
+  GetWindowThreadProcessId(hwnd, &pid);
+  HANDLE hProc = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+  if (hProc) {
+    char fullPath[MAX_PATH];
+    DWORD size = sizeof(fullPath);
+    if (QueryFullProcessImageNameA(hProc, 0, fullPath, &size)) {
+      char* filename = strrchr(fullPath, '\\');
+      const char* exeName = filename ? filename + 1 : fullPath;
+      if (!_stricmp(exeName, data->targetProcessName.c_str())) {
         data->foundWindow = hwnd;
-        return FALSE; // Stop enumeration
+        CloseHandle(hProc);
+        return FALSE;
       }
     }
-    CloseHandle(hProcess);
+    CloseHandle(hProc);
   }
-  
-  // Check window title if process name didn't match
-  if (!data->targetWindowTitle.empty() && 
-      _stricmp(windowTitle, data->targetWindowTitle.c_str()) == 0) {
+
+  if (!data->targetWindowTitle.empty() &&
+      !_stricmp(windowTitle, data->targetWindowTitle.c_str())) {
     data->foundWindow = hwnd;
-    return FALSE; // Stop enumeration
+    return FALSE;
   }
-  
-  return TRUE; // Continue enumeration
+
+  return TRUE;
 }
 
-HWND FindTargetWindow(const std::string& processName, const std::string& windowTitle) {
+HWND FindTargetWindow(const std::string& processName,
+                      const std::string& windowTitle) {
   FindWindowData data;
   data.targetProcessName = processName;
   data.targetWindowTitle = windowTitle;
   data.foundWindow = NULL;
-  
-  EnumWindows(EnumWindowsCallback, reinterpret_cast<LPARAM>(&data));
+  EnumWindows(EnumWindowsCallback,
+              reinterpret_cast<LPARAM>(&data));
   return data.foundWindow;
 }
-
-
 
 void KeypressSimulatorWindowsPlugin::HandleMethodCall(
     const flutter::MethodCall<flutter::EncodableValue>& method_call,
     std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result) {
-  if (method_call.method_name().compare("simulateKeyPress") == 0) {
+  const auto& method = method_call.method_name();
+  if (method == "simulateKeyPress") {
     SimulateKeyPress(method_call, std::move(result));
-  } else if (method_call.method_name().compare("simulateMouseClick") == 0) {
+  } else if (method == "simulateMouseClick") {
     SimulateMouseClick(method_call, std::move(result));
   } else {
     result->NotImplemented();
