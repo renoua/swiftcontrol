@@ -97,6 +97,18 @@ void KeypressSimulatorWindowsPlugin::SimulateKeyPress(
         static_cast<WORD>(MapVirtualKey(vk, MAPVK_VK_TO_VSC));
     inputs[eventCount].ki.dwFlags =
         KEYEVENTF_SCANCODE | (down ? 0 : KEYEVENTF_KEYUP);
+    // On ajoute KEYEVENTF_EXTENDEDKEY pour les touches étendues
+    UINT flags = KEYEVENTF_SCANCODE | (down ? 0 : KEYEVENTF_KEYUP);
+    if (vk == VK_LEFT  || vk == VK_RIGHT ||
+        vk == VK_UP    || vk == VK_DOWN  ||
+        vk == VK_PRIOR || vk == VK_NEXT  ||
+        vk == VK_END   || vk == VK_HOME  ||
+        vk == VK_INSERT|| vk == VK_DELETE||
+        vk == VK_DIVIDE|| vk == VK_NUMLOCK||
+        vk == VK_RCONTROL || vk == VK_RMENU) {
+      flags |= KEYEVENTF_EXTENDEDKEY;
+    }
+    inputs[eventCount].ki.dwFlags = flags;
     eventCount++;
   };
 
