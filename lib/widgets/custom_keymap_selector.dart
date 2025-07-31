@@ -27,7 +27,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
   late StreamSubscription<BaseNotification> _actionSubscription;
 
   final FocusNode _focusNode = FocusNode();
-  KeyDownEvent? _pressedKey;
+  KeyEvent? _pressedKey;
 
   ZwiftButton? _pressedButton;
 
