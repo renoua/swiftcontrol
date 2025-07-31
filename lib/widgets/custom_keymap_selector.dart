@@ -10,6 +10,7 @@ import 'package:swift_control/bluetooth/messages/ride_notification.dart';
 import 'package:swift_control/main.dart';
 import 'package:swift_control/utils/keymap/buttons.dart';
 import 'package:swift_control/utils/keymap/keymap.dart';
+import 'package:swift_control/utils/actions/desktop.dart'; // <--- AJOUT
 
 import '../utils/keymap/apps/custom_app.dart';
 
@@ -27,7 +28,10 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
 
   final FocusNode _focusNode = FocusNode();
   KeyDownEvent? _pressedKey;
+
   ZwiftButton? _pressedButton;
+
+  final desktopActions = DesktopActions(); // <--- AJOUT INSTANCE
 
   @override
   void initState() {
@@ -64,24 +68,22 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
   }
 
   void _onKey(KeyEvent event) {
-    if (event is KeyDownEvent) {
-      setState(() {
+    setState(() {
+      if (event is KeyDownEvent) {
         _pressedKey = event;
         widget.customApp.setKey(
           _pressedButton!,
           physicalKey: _pressedKey!.physicalKey,
           logicalKey: _pressedKey!.logicalKey,
         );
-      });
-  
-      // Appel de simulateKeyDown
-      DesktopActions().performAction(_pressedButton!);
-    }
-  
-    if (event is KeyUpEvent) {
-      // Appel de simulateKeyUp
-      DesktopActions().releaseAction(_pressedButton!);
-    }
+        // Appuie virtuel
+        desktopActions.performAction(_pressedButton!);
+      }
+      if (event is KeyUpEvent) {
+        // Relâchement virtuel
+        desktopActions.releaseAction(_pressedButton!);
+      }
+    });
   }
 
   String _formatKey(KeyDownEvent? key) {
@@ -91,26 +93,28 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      content:
-          _pressedButton == null
-              ? Text('Press a button on your Zwift device')
-              : KeyboardListener(
-                focusNode: _focusNode,
-                autofocus: true,
-                onKeyEvent: _onKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: 20,
-                  children: [
-                    Text("Press a key on your keyboard to assign to ${_pressedButton.toString()}"),
-                    Text(_formatKey(_pressedKey)),
-                  ],
-                ),
+      content: _pressedButton == null
+          ? Text('Press a button on your Zwift device')
+          : KeyboardListener(
+              focusNode: _focusNode,
+              autofocus: true,
+              onKeyEvent: _onKey,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text("Press a key on your keyboard to assign to ${_pressedButton.toString()}"),
+                  Text(_formatKey(_pressedKey)),
+                ],
               ),
-
-      actions: [TextButton(onPressed: () => Navigator.of(context).pop(_pressedKey), child: Text("OK"))],
+            ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(_pressedKey),
+          child: Text("OK"),
+        )
+      ],
     );
   }
 }
