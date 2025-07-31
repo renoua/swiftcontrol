@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:swift_control/pages/requirements.dart';
 import 'package:swift_control/theme.dart';
-import 'package:swift_control/utils/actions/android.dart';
 import 'package:swift_control/utils/actions/desktop.dart';
 import 'package:swift_control/utils/settings/settings.dart';
 import 'package:window_manager/window_manager.dart';
@@ -24,8 +23,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (kIsWeb) {
     actionHandler = StubActions();
-  } else if (Platform.isAndroid) {
-    actionHandler = AndroidActions();
   } else {
     actionHandler = DesktopActions();
     // Must add this line.
