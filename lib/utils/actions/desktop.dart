@@ -40,7 +40,7 @@ class DesktopActions extends BaseActions {
     }
 
     if (keyPair.physicalKey != null) {
-      await keyPressSimulator.simulateKeyDown(keyPair.physicalKey); // debug, remettre await keyPressSimulator.simulateKeyUp(keyPair.physicalKey); ensuite
+      await keyPressSimulator.simulateKeyUp(keyPair.physicalKey); // debug, remettre await keyPressSimulator.simulateKeyUp(keyPair.physicalKey); ensuite
       return 'Key up: ${keyPair.logicalKey?.keyLabel}';
     } else {
       return 'No physical key to release';
