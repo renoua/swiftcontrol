@@ -245,8 +245,9 @@ abstract class BaseDevice {
               if (buttonsClicked == null) {
                 // ignore, no changes
               } else if (buttonsClicked.isEmpty) {
-                actionStreamInternal.add(LogNotification('Buttons released'));
                 _longPressTimer?.cancel();
+                await _performActions([], false);
+                actionStreamInternal.add(LogNotification('Buttons released'));
               } else {
                 if (!(buttonsClicked.singleOrNull == ZwiftButton.onOffLeft ||
                     buttonsClicked.singleOrNull == ZwiftButton.onOffRight)) {
