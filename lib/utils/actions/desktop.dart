@@ -17,7 +17,6 @@ class DesktopActions extends BaseActions {
     if (keyPair.physicalKey != null) {
       // On appuie sur la touche physique : simulateKeyDown UNIQUEMENT
       await keyPressSimulator.simulateKeyDown(keyPair.physicalKey);
-      await keyPressSimulator.simulateKeyUp(keyPair.physicalKey); // debug
       // NE PAS appeler simulateKeyUp ici.
       // simulateKeyUp doit être appelé au relâchement de la touche physique,
       // donc dans le code qui gère l'événement keyup/notification de relâchement.
@@ -29,7 +28,7 @@ class DesktopActions extends BaseActions {
     }
   }
 
-  // Ajoute une méthode pour le relâchement de touche (keyup)
+  // Méthode pour le relâchement de touche (keyup)
   Future<String> releaseAction(ZwiftButton action) async {
     if (supportedApp == null) {
       return ('Supported app is not set');
