@@ -19,7 +19,7 @@ class PlayNotification extends BaseNotification {
         if (status.buttonBDown == PlayButtonStatus.ON) ZwiftButton.b,
         if (status.buttonOn == PlayButtonStatus.ON) ZwiftButton.onOffRight,
         if (status.buttonShift == PlayButtonStatus.ON) ZwiftButton.sideButtonRight,
-        if (status.analogLR.abs() == 100) ZwiftButton.paddleRight,
+        if (status.analogLR.abs() >= 20) ZwiftButton.paddleRight,
       ],
       if (status.rightPad == PlayButtonStatus.OFF) ...[
         if (status.buttonYUp == PlayButtonStatus.ON) ZwiftButton.navigationUp,
@@ -28,7 +28,7 @@ class PlayNotification extends BaseNotification {
         if (status.buttonBDown == PlayButtonStatus.ON) ZwiftButton.navigationDown,
         if (status.buttonOn == PlayButtonStatus.ON) ZwiftButton.onOffLeft,
         if (status.buttonShift == PlayButtonStatus.ON) ZwiftButton.sideButtonLeft,
-        if (status.analogLR.abs() == 100) ZwiftButton.paddleLeft,
+        if (status.analogLR.abs() >= 20) ZwiftButton.paddleLeft,
       ],
     ];
   }
