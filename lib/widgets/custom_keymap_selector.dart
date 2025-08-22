@@ -79,7 +79,8 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
         // Appuie virtuel
         desktopActions.performAction(_pressedButton!);
       }
-      if (event is KeyUpEvent) {
+      / * Should not be of use anymore
+        if (event is KeyUpEvent) {
         _pressedKey = event;
         widget.customApp.setKey(
           _pressedButton!,
@@ -88,7 +89,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
         );
         // Relâchement virtuel
         desktopActions.releaseAction(_pressedButton!);
-      }
+      } */
     });
   }
 
