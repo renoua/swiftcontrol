@@ -271,10 +271,10 @@ abstract class BaseDevice {
   Future<List<ZwiftButton>?> processClickNotification(Uint8List message);
 
   Future<void> _performActions(List<ZwiftButton> buttonsClicked, bool repeated) async {
-    /* if (!repeated &&
+    if (!repeated &&
         buttonsClicked.any(((e) => e.action == InGameAction.shiftDown || e.action == InGameAction.shiftUp))) {
-      await _vibrate();
-    } */ 
+      // await _vibrate();
+    } 
   
     // Appuis en cours : tous ceux qui sont actuellement envoyés
     final newlyPressed = buttonsClicked.toSet();
