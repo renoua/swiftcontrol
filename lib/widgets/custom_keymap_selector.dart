@@ -79,7 +79,7 @@ class _HotKeyListenerState extends State<HotKeyListenerDialog> {
         // Appuie virtuel
         desktopActions.performAction(_pressedButton!);
       }
-      / * Should not be of use anymore
+      /* Should not be of use anymore
         if (event is KeyUpEvent) {
         _pressedKey = event;
         widget.customApp.setKey(
