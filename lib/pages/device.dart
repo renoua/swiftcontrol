@@ -28,7 +28,6 @@ class _DevicePageState extends State<DevicePage> {
   @override
   void initState() {
     super.initState();
-
     _connectionStateSubscription = connection.connectionStream.listen((state) async {
       setState(() {});
     });
@@ -61,7 +60,6 @@ class _DevicePageState extends State<DevicePage> {
             padding: const EdgeInsets.all(8.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: 10,
               children: [
                 Text(
                   'Devices:\n${connection.devices.joinToString(separator: '\n', transform: (it) {
@@ -69,6 +67,7 @@ class _DevicePageState extends State<DevicePage> {
                   })}',
                 ),
                 Divider(color: Theme.of(context).colorScheme.primary, height: 30),
+                
                 if (!kIsWeb)
                   Wrap(
                     spacing: 8,
@@ -107,9 +106,7 @@ class _DevicePageState extends State<DevicePage> {
                                 .toList(),
                         label: Text('Keymap'),
                         onSelected: (app) async {
-                          if (app == null) {
-                            return;
-                          }
+                          if (app == null) return;
                           controller.text = app.name ?? '';
                           actionHandler.supportedApp = app;
                           settings.setApp(app);
@@ -141,8 +138,26 @@ class _DevicePageState extends State<DevicePage> {
                           },
                           child: Text('Customize Keymap'),
                         ),
+
+                      // --- Checkbox Vibration ---
+                      StatefulBuilder(
+                        builder: (context, setLocalState) => CheckboxListTile(
+                          title: const Text("Vibrate"),
+                          value: settings.vibrationEnabled,
+                          onChanged: (val) async {
+                            if (val != null) {
+                              setLocalState(() {
+                                settings.vibrationEnabled = val;
+                              });
+                              await settings.setVibrationEnabled(val);
+                              setState(() {}); // update parent UI
+                            }
+                          },
+                        ),
+                      ),
                     ],
                   ),
+
                 Expanded(child: LogViewer()),
               ],
             ),
