@@ -8,10 +8,18 @@ import '../keymap/apps/custom_app.dart';
 class Settings {
   late final SharedPreferences _prefs;
 
+  // --- Ajout pour la vibration ---
+  static const _keyVibrationEnabled = "vibrationEnabled";
+  bool vibrationEnabled = true;
+
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
 
     try {
+      // Charger l’état vibration
+      vibrationEnabled = _prefs.getBool(_keyVibrationEnabled) ?? true;
+
+      // Charger configuration d’app
       final appSetting = _prefs.getStringList("customapp");
       if (appSetting != null) {
         final customApp = CustomApp();
@@ -22,7 +30,8 @@ class Settings {
       if (appName == null) {
         return;
       }
-      final app = SupportedApp.supportedApps.firstOrNullWhere((e) => e.name == appName);
+      final app =
+          SupportedApp.supportedApps.firstOrNullWhere((e) => e.name == appName);
 
       actionHandler.init(app);
     } catch (e) {
@@ -37,5 +46,11 @@ class Settings {
       _prefs.setStringList("customapp", app.encodeKeymap());
     }
     _prefs.setString('app', app.name);
+  }
+
+  // --- Setter vibration avec persistance ---
+  Future<void> setVibrationEnabled(bool enabled) async {
+    vibrationEnabled = enabled;
+    await _prefs.setBool(_keyVibrationEnabled, enabled);
   }
 }
