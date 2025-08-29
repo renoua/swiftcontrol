@@ -69,85 +69,59 @@ class _RequirementsPageState extends State<RequirementsPage> with WidgetsBinding
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: buildMenuButtons(),
       ),
-      body: _requirements.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                Expanded(
-                  child: Stepper(
-                    currentStep: _currentStep,
-                    connectorColor: WidgetStateProperty.resolveWith<Color>(
-                      (Set<WidgetState> states) =>
-                          Theme.of(context).colorScheme.primary,
-                    ),
-                    onStepContinue: _currentStep < _requirements.length
+      body:
+          _requirements.isEmpty
+              ? Center(child: CircularProgressIndicator())
+              : Stepper(
+                currentStep: _currentStep,
+                connectorColor: WidgetStateProperty.resolveWith<Color>(
+                  (Set<WidgetState> states) => Theme.of(context).colorScheme.primary,
+                ),
+                onStepContinue:
+                    _currentStep < _requirements.length
                         ? () {
-                            setState(() {
-                              _currentStep += 1;
-                            });
-                          }
+                          setState(() {
+                            _currentStep += 1;
+                          });
+                        }
                         : null,
-                    onStepTapped: (step) {
-                      if (_requirements[step].status) {
-                        return;
-                      }
-                      final hasEarlierIncomplete =
-                          _requirements.indexWhere((req) => !req.status) < step;
-                      if (hasEarlierIncomplete) {
-                        return;
-                      }
-                      setState(() {
-                        _currentStep = step;
-                      });
-                    },
-                    controlsBuilder: (context, details) => Container(),
-                    steps: _requirements
+                onStepTapped: (step) {
+                  if (_requirements[step].status) {
+                    return;
+                  }
+                  final hasEarlierIncomplete = _requirements.indexWhere((req) => !req.status) < step;
+                  if (hasEarlierIncomplete) {
+                    return;
+                  }
+                  setState(() {
+                    _currentStep = step;
+                  });
+                },
+                controlsBuilder: (context, details) => Container(),
+                steps:
+                    _requirements
                         .mapIndexed(
                           (index, req) => Step(
                             title: Text(req.name),
                             content: Container(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 16.0),
+                              padding: const EdgeInsets.symmetric(vertical: 16.0),
                               alignment: Alignment.centerLeft,
-                              child: (index == _currentStep
+                              child:
+                                  (index == _currentStep
                                       ? req.build(context, () {
-                                          _reloadRequirements();
-                                        })
+                                        _reloadRequirements();
+                                      })
                                       : null) ??
                                   ElevatedButton(
-                                    onPressed: req.status
-                                        ? null
-                                        : () => _callRequirement(req),
+                                    onPressed: req.status ? null : () => _callRequirement(req),
                                     child: Text(req.name),
                                   ),
                             ),
-                            state: req.status
-                                ? StepState.complete
-                                : StepState.indexed,
+                            state: req.status ? StepState.complete : StepState.indexed,
                           ),
                         )
                         .toList(),
-                  ),
-                ),
-                // --- Checkbox pour activer/désactiver la vibration ---
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 8.0),
-                  child: CheckboxListTile(
-                    title: const Text("Activer la vibration"),
-                    value: settings.vibrationEnabled,
-                    onChanged: (val) async {
-                      if (val != null) {
-                        setState(() {
-                          settings.vibrationEnabled = val;
-                        });
-                        await settings.setVibrationEnabled(val);
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
+              ),
     );
   }
 
