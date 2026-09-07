@@ -12,12 +12,26 @@ class Settings {
   static const _keyVibrationEnabled = "vibrationEnabled";
   bool vibrationEnabled = true;
 
+  // --- Seuils de détection des gâchettes analogiques (Zwift Play) ---
+  // Hystérésis presse/relâche : voir PlayNotification. Le seuil de relâche
+  // doit toujours rester strictement inférieur au seuil d'appui, sinon
+  // l'hystérésis s'inverse et provoque du chatter permanent.
+  static const _keyPaddlePressThreshold = "paddlePressThreshold";
+  static const _keyPaddleReleaseThreshold = "paddleReleaseThreshold";
+  static const int defaultPaddlePressThreshold = 60;
+  static const int defaultPaddleReleaseThreshold = 35;
+  int paddlePressThreshold = defaultPaddlePressThreshold;
+  int paddleReleaseThreshold = defaultPaddleReleaseThreshold;
+
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
 
     try {
       // Charger l’état vibration
       vibrationEnabled = _prefs.getBool(_keyVibrationEnabled) ?? true;
+
+      paddlePressThreshold = _prefs.getInt(_keyPaddlePressThreshold) ?? defaultPaddlePressThreshold;
+      paddleReleaseThreshold = _prefs.getInt(_keyPaddleReleaseThreshold) ?? defaultPaddleReleaseThreshold;
 
       // Charger configuration d’app
       final appSetting = _prefs.getStringList("customapp");
@@ -52,5 +66,21 @@ class Settings {
   Future<void> setVibrationEnabled(bool enabled) async {
     vibrationEnabled = enabled;
     await _prefs.setBool(_keyVibrationEnabled, enabled);
+  }
+
+  // --- Setters seuils gâchette, avec persistance et contrainte release < press ---
+  Future<void> setPaddlePressThreshold(int value) async {
+    paddlePressThreshold = value.clamp(0, 100).toInt();
+    if (paddleReleaseThreshold >= paddlePressThreshold) {
+      paddleReleaseThreshold = (paddlePressThreshold - 5).clamp(0, paddlePressThreshold).toInt();
+      await _prefs.setInt(_keyPaddleReleaseThreshold, paddleReleaseThreshold);
+    }
+    await _prefs.setInt(_keyPaddlePressThreshold, paddlePressThreshold);
+  }
+
+  Future<void> setPaddleReleaseThreshold(int value) async {
+    final maxRelease = paddlePressThreshold > 0 ? paddlePressThreshold - 1 : 0;
+    paddleReleaseThreshold = value.clamp(0, maxRelease).toInt();
+    await _prefs.setInt(_keyPaddleReleaseThreshold, paddleReleaseThreshold);
   }
 }

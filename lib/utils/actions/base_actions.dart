@@ -18,6 +18,8 @@ class StubActions extends BaseActions {
   Future<String> performAction(ZwiftButton action) {
     return Future.value(action.name);
   }
+
+  @override
   Future<String> releaseAction(ZwiftButton action) {
     return Future.value(action.name);
   }

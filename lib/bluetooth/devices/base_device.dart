@@ -32,6 +32,35 @@ abstract class BaseDevice {
   BleCharacteristic? syncRxCharacteristic;
   Timer? _longPressTimer;
 
+  // Filet de sécurité : si plus aucune trame n'arrive (ou si l'état local pense
+  // qu'un bouton est encore tenu alors que la manette ne le confirme plus),
+  // on relâche tout après ce délai plutôt que de rester bloqué en attendant
+  // un événement qui ne viendra jamais. Voir plan de correction (étape 4).
+  static const _watchdogTimeout = Duration(seconds: 3);
+  Timer? _watchdogTimer;
+
+  // Instrumentation (étape 0) : delta entre deux trames reçues, pour calibrer
+  // le comportement de la manette (fréquence de rafraîchissement, trames Idle...).
+  DateTime? _lastFrameAt;
+
+  // File d'exécution séquentielle : garantit qu'un _performActions ne peut
+  // jamais s'entrelacer avec un autre, même si l'un d'eux attend une écriture
+  // BLE (vibration). Corrige la course qui laissait _currentlyPressed
+  // désynchronisé de l'état réel des touches (étapes 1-3 du plan).
+  Future<void> _actionQueue = Future.value();
+
+  Future<void> _enqueue(Future<void> Function() task) {
+    // L'erreur est absorbée ici (loguée) plutôt que laissée à la charge de
+    // chaque appelant : la plupart des sites d'appel sont "fire and forget"
+    // (retour de Future non attendu), et une erreur non gérée y déclencherait
+    // sinon un avertissement "Unhandled exception" au niveau de la zone Dart.
+    final result = _actionQueue.then((_) => task()).catchError((e, stackTrace) {
+      actionStreamInternal.add(LogNotification('Action error: $e'));
+    });
+    _actionQueue = result;
+    return result;
+  }
+
   List<int> get startCommand => Constants.RIDE_ON + Constants.RESPONSE_START_CLICK;
   String get customServiceId => BleUuid.ZWIFT_CUSTOM_SERVICE_UUID;
 
@@ -227,9 +256,35 @@ abstract class BaseDevice {
       message = bytes.sublist(1);
     }
 
+    if (kDebugMode) {
+      final now = DateTime.now();
+      final deltaMs = _lastFrameAt == null ? null : now.difference(_lastFrameAt!).inMilliseconds;
+      _lastFrameAt = now;
+      print(
+        '[BLE $runtimeType] type=$type deltaMs=$deltaMs currentlyPressed=${_currentlyPressed.map((e) => e.name).toList()}',
+      );
+    }
+
+    // Tant qu'un bouton est considéré comme tenu, chaque trame reçue (quel que
+    // soit son type) prouve que le lien est vivant : on repousse le filet de
+    // sécurité. S'il n'arrive plus aucune trame, il finira par se déclencher.
+    if (_currentlyPressed.isNotEmpty) {
+      _armWatchdog();
+    }
+
     switch (type) {
       case Constants.EMPTY_MESSAGE_TYPE:
-        //print("Empty Message"); // expected when nothing happening
+        // "Idle" : la manette indique explicitement qu'aucun bouton n'est enfoncé.
+        // Si notre état local pense encore qu'un bouton est tenu (par ex. parce
+        // que la notification de relâchement a été perdue), on se resynchronise
+        // immédiatement plutôt que d'attendre le watchdog ou un autre bouton.
+        if (_currentlyPressed.isNotEmpty) {
+          _longPressTimer?.cancel();
+          _longPressTimer = null;
+          _enqueue(() => _performActions([], false));
+          resetNotificationState();
+          actionStreamInternal.add(LogNotification('Idle frame: releasing stuck buttons'));
+        }
         break;
       case Constants.BATTERY_LEVEL_TYPE:
         if (batteryLevel != message[1]) {
@@ -246,19 +301,35 @@ abstract class BaseDevice {
                 // ignore, no changes
               } else if (buttonsClicked.isEmpty) {
                 _longPressTimer?.cancel();
-                await _performActions([], false);
+                _longPressTimer = null;
+                _enqueue(() => _performActions([], false));
                 actionStreamInternal.add(LogNotification('Buttons released'));
               } else {
+                // On annule systématiquement l'ancien timer de répétition, même
+                // si le nouvel ensemble contient un bouton on/off : sinon un
+                // ancien timer (ex. sur paddleLeft) continue de tourner avec sa
+                // closure périmée après un changement de bouton.
+                _longPressTimer?.cancel();
+                _longPressTimer = null;
+                _armWatchdog();
+
                 if (!(buttonsClicked.singleOrNull == ZwiftButton.onOffLeft ||
                     buttonsClicked.singleOrNull == ZwiftButton.onOffRight)) {
                   // we don't want to trigger the long press timer for the on/off buttons
-                  _longPressTimer?.cancel();
-                  _longPressTimer = Timer.periodic(const Duration(milliseconds: 250), (timer) async {
-                    _performActions(buttonsClicked, true);
+                  late final Timer timer;
+                  timer = Timer.periodic(const Duration(milliseconds: 250), (t) {
+                    if (!identical(_longPressTimer, timer)) {
+                      // Un timer plus récent a pris le relais entre-temps :
+                      // celui-ci est périmé, on l'arrête et on ignore son tick.
+                      t.cancel();
+                      return;
+                    }
+                    _enqueue(() => _performActions(buttonsClicked, true));
                   });
+                  _longPressTimer = timer;
                 }
 
-                _performActions(buttonsClicked, false);
+                _enqueue(() => _performActions(buttonsClicked, false));
               }
             })
             .catchError((e) {
@@ -270,41 +341,93 @@ abstract class BaseDevice {
 
   Future<List<ZwiftButton>?> processClickNotification(Uint8List message);
 
+  /// Purge tout état de dédoublonnage propre à l'appareil (dernière notification
+  /// connue, état de la gâchette analogique...). Appelé lors d'une resynchronisation
+  /// forcée (watchdog, trame Idle, déconnexion) pour garantir qu'un nouvel appui
+  /// après coup ne soit jamais avalé par une comparaison avec un état périmé.
+  void resetNotificationState();
+
+  void _armWatchdog() {
+    _watchdogTimer?.cancel();
+    _watchdogTimer = Timer(_watchdogTimeout, () {
+      actionStreamInternal.add(
+        LogNotification('Watchdog: no update received for ${_watchdogTimeout.inSeconds}s while a button was held, resynchronizing'),
+      );
+      _longPressTimer?.cancel();
+      _longPressTimer = null;
+      _enqueue(() => _performActions([], false));
+      resetNotificationState();
+    });
+  }
+
+  void _disarmWatchdog() {
+    _watchdogTimer?.cancel();
+    _watchdogTimer = null;
+  }
+
   Future<void> _performActions(List<ZwiftButton> buttonsClicked, bool repeated) async {
-     if (settings.vibrationEnabled && !repeated &&
-        buttonsClicked.any(((e) => e.action == InGameAction.shiftDown || e.action == InGameAction.shiftUp))) {
-       await _vibrate();
-    } 
-  
     // Appuis en cours : tous ceux qui sont actuellement envoyés
     final newlyPressed = buttonsClicked.toSet();
     final released = _currentlyPressed.difference(newlyPressed);
     final pressed = newlyPressed.difference(_currentlyPressed);
-  
+
     // 1. Relâche les boutons qui ne sont plus pressés
     for (final button in released) {
       final result = await actionHandler.releaseAction(button);
       actionStreamInternal.add(LogNotification(result));
     }
-  
+
     // 2. Appuie sur les nouveaux
     for (final button in pressed) {
       final result = await actionHandler.performAction(button);
       actionStreamInternal.add(LogNotification(result));
     }
-  
-    // 3. Répète l’action si besoin (tu peux adapter ce comportement)
+
+    // 3. Répète l'action si besoin (mode "long press") : ne touche jamais à
+    // _currentlyPressed, qui ne représente que l'état de la dernière notification
+    // réellement reçue de la manette.
     if (repeated) {
       for (final button in buttonsClicked) {
         final result = await actionHandler.performAction(button);
         actionStreamInternal.add(LogNotification('[repeat] $result'));
       }
+    } else {
+      // 4. Met à jour l'état courant
+      _currentlyPressed
+        ..clear()
+        ..addAll(newlyPressed);
+
+      if (_currentlyPressed.isEmpty) {
+        _disarmWatchdog();
+      }
     }
-  
-    // 4. Mets à jour l’état courant
-    _currentlyPressed
-      ..clear()
-      ..addAll(newlyPressed);
+
+    // 5. Vibration : hors du chemin critique (non attendue) et déclenchée
+    // uniquement sur une vraie transition (nouveau bouton shift enfoncé), pas
+    // à chaque fois qu'un bouton shift figure encore dans la liste alors qu'il
+    // est simplement maintenu. La faire après les événements clavier et sans
+    // `await` évite qu'un aller-retour BLE retarde le prochain _performActions.
+    if (settings.vibrationEnabled &&
+        !repeated &&
+        pressed.any((e) => e.action == InGameAction.shiftDown || e.action == InGameAction.shiftUp)) {
+      unawaited(
+        _vibrate().catchError((e) {
+          actionStreamInternal.add(LogNotification('Vibration error: $e'));
+        }),
+      );
+    }
+  }
+
+  /// Relâche immédiatement tous les boutons considérés comme tenus et remet à
+  /// zéro l'état de dédoublonnage. À appeler avant une déconnexion : sans ça,
+  /// une touche appuyée au moment de la coupure du lien BLE reste enfoncée au
+  /// niveau du système d'exploitation, sans aucun moyen de la relâcher.
+  Future<void> releaseAllButtons() async {
+    _longPressTimer?.cancel();
+    _longPressTimer = null;
+    _disarmWatchdog();
+    await _enqueue(() => _performActions([], false));
+    resetNotificationState();
   }
 
   Future<void> _vibrate() async {

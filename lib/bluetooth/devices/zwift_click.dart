@@ -23,4 +23,9 @@ class ZwiftClick extends BaseDevice {
       return null;
     }
   }
+
+  @override
+  void resetNotificationState() {
+    _lastClickNotification = null;
+  }
 }

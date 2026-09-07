@@ -31,4 +31,9 @@ class ZwiftRide extends BaseDevice {
       return null;
     }
   }
+
+  @override
+  void resetNotificationState() {
+    _lastControllerNotification = null;
+  }
 }

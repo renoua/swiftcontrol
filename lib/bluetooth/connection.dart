@@ -127,10 +127,14 @@ class Connection {
       final actionSubscription = bleDevice.actionStream.listen((data) {
         _actionStreams.add(data);
       });
-      final connectionStateSubscription = UniversalBle.connectionStream(bleDevice.device.deviceId).listen((state) {
+      final connectionStateSubscription = UniversalBle.connectionStream(bleDevice.device.deviceId).listen((state) async {
         bleDevice.isConnected = state.isConnected;
         _connectionStreams.add(bleDevice);
         if (!bleDevice.isConnected) {
+          // Une touche appuyée au moment de la coupure du lien BLE resterait
+          // sinon enfoncée au niveau du système d'exploitation sans aucun
+          // moyen de la relâcher.
+          await bleDevice.releaseAllButtons();
           devices.remove(bleDevice);
           _streamSubscriptions[bleDevice]?.cancel();
           _streamSubscriptions.remove(bleDevice);
@@ -162,6 +166,8 @@ class Connection {
     UniversalBle.stopScan();
     isScanning.value = false;
     for (var device in devices) {
+      // Best-effort : relâche toute touche encore tenue avant de couper le lien.
+      device.releaseAllButtons();
       _streamSubscriptions[device]?.cancel();
       _streamSubscriptions.remove(device);
       _connectionSubscriptions[device]?.cancel();

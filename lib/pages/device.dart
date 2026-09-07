@@ -155,6 +155,43 @@ class _DevicePageState extends State<DevicePage> {
                           },
                         ),
                       ),
+
+                      // --- Seuils de la gâchette analogique (Zwift Play) ---
+                      StatefulBuilder(
+                        builder: (context, setLocalState) => SizedBox(
+                          width: 280,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('Paddle press threshold: ${settings.paddlePressThreshold}'),
+                              Slider(
+                                value: settings.paddlePressThreshold.toDouble(),
+                                min: 0,
+                                max: 100,
+                                divisions: 20,
+                                label: settings.paddlePressThreshold.toString(),
+                                onChanged: (val) async {
+                                  await settings.setPaddlePressThreshold(val.round());
+                                  setLocalState(() {});
+                                },
+                              ),
+                              Text('Paddle release threshold: ${settings.paddleReleaseThreshold}'),
+                              Slider(
+                                value: settings.paddleReleaseThreshold.toDouble(),
+                                min: 0,
+                                max: 100,
+                                divisions: 20,
+                                label: settings.paddleReleaseThreshold.toString(),
+                                onChanged: (val) async {
+                                  await settings.setPaddleReleaseThreshold(val.round());
+                                  setLocalState(() {});
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
 
