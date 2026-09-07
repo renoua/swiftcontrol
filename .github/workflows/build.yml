@@ -14,7 +14,13 @@ on:
 jobs:
   windows:
     name: Build & Release on Windows
-    runs-on: windows-latest
+    # Épinglé sur windows-2022 (et non windows-latest) : depuis juin 2026,
+    # windows-latest pointe vers un runner Visual Studio 2026 que le générateur
+    # CMake de Flutter ne reconnaît pas encore, ce qui fait échouer
+    # `flutter build windows` avec "Generator Visual Studio 16 2019 could not
+    # find any instance of Visual Studio". windows-2022 fournit encore VS 2022,
+    # pleinement supporté par Flutter. À retirer une fois Flutter corrigé.
+    runs-on: windows-2022
 
     steps:
       #1 Checkout Repository
